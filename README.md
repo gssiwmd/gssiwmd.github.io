@@ -4,21 +4,21 @@
 
 cdiptv.m3u/cdiptv.txt 成都电信iptv udpxy线路:
    
-    https://gswangmd-gssi.github.io/iptv/cdiptv.m3u
+    https://gssiwmd.github.io/iptv/cdiptv.m3u
     
-    https://gswangmd-gssi.github.io/iptv/cdiptv.txt
+    https://gssiwmd.github.io/iptv/cdiptv.txt
 
 hkiptv.m3u/hkiptv.txt 海口联通iptv udpxy线路: 
     
-    https://gswangmd-gssi.github.io/iptv/hkiptv.m3u
+    https://gssiwmd.github.io/iptv/hkiptv.m3u
     
-    https://gswangmd-gssi.github.io/iptv/hkiptv.txt
+    https://gssiwmd.github.io/iptv/hkiptv.txt
 
 iptv6.m3u/iptv6.txt 通用ipv6线路:
     
-    https://gswangmd-gssi.github.io/iptv/iptv6.m3u
+    https://gssiwmd.github.io/iptv/iptv6.m3u
     
-    https://gswangmd-gssi.github.io/iptv/iptv6.txt
+    https://gssiwmd.github.io/iptv/iptv6.txt
 
 EPG接口地址：
 
