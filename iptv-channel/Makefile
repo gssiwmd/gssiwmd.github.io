@@ -1,0 +1,39 @@
+#
+# Copyright (C) 2010-2011 OpenWrt.org
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=iptv-channel
+PKG_VERSION:=2024
+PKG_RELEASE:=0223
+PKG_LICENSE:=GPLv3
+PKG_LICENSE_FILES:=LICENSE
+
+include $(INCLUDE_DIR)/package.mk
+
+define Package/iptv-channel
+  SECTION:=gssiwmd
+  CATEGORY:=GssiWMD
+  TITLE:=IPTV Live Channel
+  PKGARCH:=all
+endef
+
+define Package/iptv-channel/description
+	GssiRouter IPTV Live Channel
+endef
+
+define Build/Compile
+endef
+
+define Package/iptv-channel/install
+  mkdir -p $(1)/www/iptv
+  
+	$(CP)  ./../*.m3u $(1)/www/iptv
+	$(CP)  ./../*.txt $(1)/www/iptv
+endef
+
+$(eval $(call BuildPackage,iptv-channel))
