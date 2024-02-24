@@ -24,7 +24,7 @@ EPG接口地址：
 
     https://live.fanmingming.com/e.xml
     
-    2024-02-02 最后修改
+    2024-02-24 最后修改
     
     
     
