@@ -34,6 +34,7 @@ define Package/iptv/install
   
 	$(CP)  *.m3u $(1)/www/iptv
 	$(CP)  *.txt $(1)/www/iptv
+	$(CP)  update_xiaoya.sh $(1)
 endef
 
 $(eval $(call BuildPackage,iptv))
