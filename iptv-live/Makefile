@@ -7,7 +7,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=iptv
+PKG_NAME:=iptv-live
 PKG_VERSION:=2024
 PKG_RELEASE:=0223
 PKG_LICENSE:=GPLv3
@@ -15,7 +15,7 @@ PKG_LICENSE_FILES:=LICENSE
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/iptv
+define Package/iptv-live
   SECTION:=gssiwmd
   CATEGORY:=GssiWMD
   TITLE:=IPTV Live Channel
@@ -29,7 +29,7 @@ endef
 define Build/Compile
 endef
 
-define Package/iptv/install
+define Package/iptv-live/install
   mkdir -p $(1)/www/iptv
   
 	$(CP)  *.m3u $(1)/www/iptv
@@ -37,4 +37,4 @@ define Package/iptv/install
 	$(CP)  update_xiaoya.sh $(1)/www/iptv
 endef
 
-$(eval $(call BuildPackage,iptv))
+$(eval $(call BuildPackage,iptv-live))
