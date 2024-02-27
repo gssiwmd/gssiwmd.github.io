@@ -185,9 +185,11 @@ config global
 	option udp_node 'tcp'
 	option when_chnroute_default_dns 'direct'
 	option dns_mode 'dns2tcp'
-	option tcp_proxy_mode 'chnroute'
-	option udp_proxy_mode 'chnroute'
 	option enabled '1'
+	option use_default_dns 'direct'
+	option chn_list 'direct'
+	option udp_proxy_mode 'disable'
+	option tcp_proxy_mode 'disable'
 
 config global_haproxy
 	option balancing_enable '1'
