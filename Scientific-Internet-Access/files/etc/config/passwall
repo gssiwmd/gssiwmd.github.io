@@ -20,8 +20,8 @@ config global
 	option tcp_proxy_mode 'proxy'
 	option udp_proxy_mode 'proxy'
 	option v2ray_dns_mode 'tcp+doh'
-	option dns_mode 'udp'
-	option remote_dns '127.0.0.1:5335'
+	option dns_mode 'dns2tcp'
+	option remote_dns '1.1.1.2'
 
 config haproxy_config 'uMIoYdgY'
 	option enabled '1'
@@ -237,8 +237,6 @@ config global_rules
 	option chnroute_update '1'
 	option chnroute6_update '1'
 	option gfwlist_update '1'
-	option geosite_update '0'
-	option geoip_update '0'
 	list gfwlist_url 'https://fastly.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/gfw.txt'
 	list chnroute_url 'https://ispip.clang.cn/all_cn.txt'
 	list chnroute_url 'https://fastly.jsdelivr.net/gh/gaoyifan/china-operator-ip@ip-lists/china.txt'
@@ -250,6 +248,8 @@ config global_rules
 	option auto_update '1'
 	option week_update '0'
 	option time_update '0'
+	option geoip_update '1'
+	option geosite_update '1'
 
 config global_app
 	option singbox_file '/usr/bin/sing-box'
