@@ -6,7 +6,10 @@ rm -rf $1
 }
 
 # Update passwall
-git clone  https://github.com/xiaorouji/openwrt-passwall && mvdir openwrt-passwall
+git clone  https://github.com/xiaorouji/openwrt-passwall
+rm -rf ./openwrt-passwall/.git
+rm -rf ./openwrt-passwall/.github
+mv -f ./openwrt-passwall/* .
 
 
 # git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall-packages passwallpackages
