@@ -9,13 +9,13 @@ rm -rf $1
 git clone  https://github.com/xiaorouji/openwrt-passwall.git
 rm -rf ./openwrt-passwall/.git
 rm -rf ./openwrt-passwall/.github
-mv -f ./openwrt-passwall/* .
+cp -f ./openwrt-passwall/* .
 rm -rf ./openwrt-passwall
 
 git clone  https://github.com/xiaorouji/openwrt-passwall-packages.git
 rm -rf ./openwrt-passwall-packages/.git
 rm -rf ./openwrt-passwall-packages/.github
-mv -f ./openwrt-passwall-packages/* .
+cp -f ./openwrt-passwall-packages/* .
 rm -rf ./openwrt-passwall-packages
 
 # update helloworld
