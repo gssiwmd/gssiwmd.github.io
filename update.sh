@@ -12,13 +12,7 @@ git clone  https://github.com/xiaorouji/openwrt-passwall.git && cpdir openwrt-pa
 git clone  https://github.com/xiaorouji/openwrt-passwall-packages.git && cpdir openwrt-passwall-packages
 
 # update helloworld
-git clone  https://github.com/fw876/helloworld.git
-rm -rf ./helloworld/.git
-rm -rf ./helloworld/.github
-rm -rf ./helloworld/LICENSE
-rm -rf ./helloworld/README.md
-cp -rf ./helloworld/* .
-rm -rf ./helloworld
+git clone  https://github.com/fw876/helloworld.git && cpdir helloworld
 
 # update istore
 git clone https://github.com/linkease/istore.git
