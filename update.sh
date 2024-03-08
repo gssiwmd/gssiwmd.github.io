@@ -1,16 +1,16 @@
 #!/bin/bash
 
 function mvdir() {
-mv -n `find $1/* -maxdepth 0 -type d` ./
+mv -rf `find $1/* -maxdepth 0 -type d` ./
 rm -rf $1
 }
 
 # Update passwall
-git clone  https://github.com/xiaorouji/openwrt-passwall.git
-rm -rf ./openwrt-passwall/.git
-rm -rf ./openwrt-passwall/.github
-cp -rf ./openwrt-passwall/* .
-rm -rf ./openwrt-passwall
+git clone  https://github.com/xiaorouji/openwrt-passwall.git && mvdir openwrt-passwall
+# rm -rf ./openwrt-passwall/.git
+# rm -rf ./openwrt-passwall/.github
+# cp -rf ./openwrt-passwall/* .
+# rm -rf ./openwrt-passwall
 
 git clone  https://github.com/xiaorouji/openwrt-passwall-packages.git
 rm -rf ./openwrt-passwall-packages/.git
