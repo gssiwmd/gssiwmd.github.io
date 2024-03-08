@@ -19,10 +19,13 @@ cp -rf ./openwrt-passwall-packages/* .
 rm -rf ./openwrt-passwall-packages
 
 # update helloworld
-# git clone  --depth 1 https://github.com/fw876/helloworld.git
-# rm -rf ./helloworld/LICENSE
-# rm -rf ./helloworld/README.md
-# mv -f helloworld ./
+git clone  https://github.com/fw876/helloworld.git
+rm -rf ./helloworld/.git
+rm -rf ./helloworld/.github
+rm -rf ./helloworld/LICENSE
+rm -rf ./helloworld/README.md
+cp -rf ./helloworld/* .
+rm -rf ./helloworld
 
 # update istore
 # git clone --depth 1 https://github.com/linkease/istore.git
