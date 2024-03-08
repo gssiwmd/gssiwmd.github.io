@@ -34,7 +34,7 @@ cp -rf ./nas-packages/multimedia/* .
 cp -rf ./nas-packages/network/services/* .
 rm -rf ./nas-packages
 
-# git clone  https://github.com/linkease/nas-packages-luci.git
+git clone  https://github.com/linkease/nas-packages-luci.git
 # cp -rf ./nas-packages-luci/luci/* .
 # rm -rf ./nas-packages-luci
 
