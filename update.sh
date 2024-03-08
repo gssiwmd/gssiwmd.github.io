@@ -33,10 +33,11 @@ cp -rf istore/luci/* .
 rm -rf ./istore
 
 # update ddnsto etc.
-# git clone --depth 1 https://github.com/linkease/nas-packages nas
-# mv -f nas/multimedia ./
-# mv -f nas/network/services ./
-# rm -rf nas
+git clone https://github.com/linkease/nas-packages
+cp -rf nas-packages/multimedia/* .
+cp -rf nas-packages/network/services/* .
+rm -rf nas-packages
+
 # git clone --depth 1 https://github.com/linkease/nas-packages-luci nasluci
 # mv -f nasluci/luci ./
 # rm -rf nasluci
