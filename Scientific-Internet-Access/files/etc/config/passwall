@@ -14,7 +14,6 @@ config global
 	option udp_node 'tcp'
 	option when_chnroute_default_dns 'direct'
 	option v2ray_dns_mode 'tcp+doh'
-	option enabled '1'
 	option dns_mode 'udp'
 	option use_default_dns 'direct'
 	option chn_list 'direct'
@@ -23,6 +22,7 @@ config global
 	option remote_dns '127.0.0.1:5335'
 	option localhost_proxy '1'
 	option client_proxy '1'
+	option enabled '0'
 
 config haproxy_config 'uMIoYdgY'
 	option enabled '1'
