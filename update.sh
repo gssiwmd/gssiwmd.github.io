@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function mvdir() {
-mv -n `find $1/* -maxdepth 0 -type d` ./
+mv -f `find $1/* -maxdepth 0 -type d` ./
 rm -rf $1
 }
 
