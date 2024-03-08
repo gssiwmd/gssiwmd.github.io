@@ -28,9 +28,9 @@ cp -rf ./helloworld/* .
 rm -rf ./helloworld
 
 # update istore
-# git clone --depth 1 https://github.com/linkease/istore.git
-# mv -f istore/luci ./
-# rm -rf ./istore
+git clone https://github.com/linkease/istore.git
+cp -rf istore/luci/* .
+rm -rf ./istore
 
 # update ddnsto etc.
 # git clone --depth 1 https://github.com/linkease/nas-packages nas
