@@ -1,16 +1,12 @@
 #!/bin/bash
 
-function mvdir() {
-mv -rf `find $1/* -maxdepth 0 -type d` ./
-rm -rf $1
-}
 
 # Update passwall
-git clone  https://github.com/xiaorouji/openwrt-passwall.git && mvdir openwrt-passwall
-# rm -rf ./openwrt-passwall/.git
-# rm -rf ./openwrt-passwall/.github
-# cp -rf ./openwrt-passwall/* .
-# rm -rf ./openwrt-passwall
+git clone  https://github.com/xiaorouji/openwrt-passwall.git 
+rm -rf ./openwrt-passwall/.git
+rm -rf ./openwrt-passwall/.github
+cp -rf ./openwrt-passwall/* .
+rm -rf ./openwrt-passwall
 
 git clone  https://github.com/xiaorouji/openwrt-passwall-packages.git
 rm -rf ./openwrt-passwall-packages/.git
@@ -33,14 +29,14 @@ cp -rf istore/luci/* .
 rm -rf ./istore
 
 # update ddnsto etc.
-git clone https://github.com/linkease/nas-packages
+git clone https://github.com/linkease/nas-packages.git
 cp -rf nas-packages/multimedia/* .
 cp -rf nas-packages/network/services/* .
 rm -rf nas-packages
 
-# git clone --depth 1 https://github.com/linkease/nas-packages-luci nasluci
-# mv -f nasluci/luci ./
-# rm -rf nasluci
+# git clone  https://github.com/linkease/nas-packages-luci.git
+# cp -rf nas-packages-luci/luci .
+# rm -rf ./nas-packages-luci
 
 # push to github
 git add -A
