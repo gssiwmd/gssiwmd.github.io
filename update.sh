@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function cpdir() {
-cp -rf  find `$1/* -maxdepth 0 -type d` ./
+cp -rf  `find $1/* -maxdepth 0 -type d` .
 rm -rf $1
 }
 
