@@ -7,28 +7,28 @@ rm -rf $1
 
 # Update passwall
 git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall passwall
-mv -f passwall/*./
+mv -f passwall ./
 git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall-packages passwallpackages
-mv  -f  passwallpackages/* ./
+mv  -f  passwallpackages ./
 
 # update helloworld
 git clone  --depth 1 https://github.com/fw876/helloworld.git
 rm -rf ./helloworld/LICENSE
 rm -rf ./helloworld/README.md
-mv -f helloworld/* ./
+mv -f helloworld ./
 
 # update istore
 git clone --depth 1 https://github.com/linkease/istore.git
-mv -f istore/luci/* ./
+mv -f istore/luci ./
 rm -rf ./istore
 
 # update ddnsto etc.
 git clone --depth 1 https://github.com/linkease/nas-packages nas
-mv -f nas/multimedia/* ./
-mv-f nas/network/services/* ./
+mv -f nas/multimedia ./
+mv -f nas/network/services ./
 rm -rf nas
 git clone --depth 1 https://github.com/linkease/nas-packages-luci nasluci
-mv -f nasluci/luci/* ./
+mv -f nasluci/luci ./
 rm -rf nasluci
 
 # push to github
