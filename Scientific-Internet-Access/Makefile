@@ -18,13 +18,13 @@ include $(INCLUDE_DIR)/package.mk
 define Package/Scientific-Internet-Access
   SECTION:=gssiwmd
   CATEGORY:=GssiWMD
-  TITLE:=Passwall/SSR Plus/Mosdns Components
+  TITLE:=SSR Plus/Mosdns Components
   PKGARCH:=all
-  DEPENDS:=+luci-app-passwall +luci-app-ssr-plus +luci-app-mosdns
+  DEPENDS:=+luci-app-ssr-plus +luci-app-mosdns
 endef
 
 define Package/Scientific-Internet-Access/description
-	GssiRouter Passwall/SSR Plus/Mosdns Components
+	GssiRouter SSR Plus/Mosdns Components
 endef
 
 define Build/Compile
