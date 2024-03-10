@@ -13,7 +13,7 @@ rm -rf $1
 
 # update helloworld
 git clone  https://github.com/fw876/helloworld.git && cpdir helloworld
-rm -rf ./mosnds
+rm -rf ./mosdns
 
 # update istore
 git clone https://github.com/linkease/istore.git && cp -rf istore/luci/* . ; rm -rf ./istore
