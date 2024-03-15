@@ -8,8 +8,11 @@ rm -rf $1
 # Update passwall and passwall2
  git clone  https://github.com/xiaorouji/openwrt-passwall.git && cpdir openwrt-passwall
  git clone  https://github.com/gssiwmd/openwrt-passwall2.git && cpdir openwrt-passwall2
- # git clone  https://github.com/xiaorouji/openwrt-passwall-packages.git && cpdir openwrt-passwall-packages
-
+ git clone  https://github.com/xiaorouji/openwrt-passwall-packages.git 
+ cp -rf ./openwrt-passwall-packages/book ./
+ cp -rf ./openwrt-passwall-packages/sing-box ./
+ rm -rf ./openwrt-passwall-packages
+ 
 # update helloworld
 git clone  https://github.com/fw876/helloworld.git && cpdir helloworld
 
