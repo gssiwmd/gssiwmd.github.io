@@ -6,18 +6,19 @@ rm -rf $1
 }
 
 # Update passwall and passwall2
- git clone  https://github.com/xiaorouji/openwrt-passwall.git && cpdir openwrt-passwall
- git clone  https://github.com/gssiwmd/openwrt-passwall2.git && cpdir openwrt-passwall2
- git clone  https://github.com/xiaorouji/openwrt-passwall-packages.git 
- cp -rf ./openwrt-passwall-packages/brook ./
- cp -rf ./openwrt-passwall-packages/sing-box ./
- cp -rf ./openwrt-passwall-packages/trojan-go ./
- cp -rf ./openwrt-passwall-packages/trojan-plus ./
- cp -rf ./openwrt-passwall-packages/v2ray-geodata ./
- rm -rf ./openwrt-passwall-packages 
+git clone https://github.com/kenzok8/small.git && cpdir small
+# git clone  https://github.com/xiaorouji/openwrt-passwall.git && cpdir openwrt-passwall
+# git clone  https://github.com/gssiwmd/openwrt-passwall2.git && cpdir openwrt-passwall2
+# git clone  https://github.com/xiaorouji/openwrt-passwall-packages.git 
+# cp -rf ./openwrt-passwall-packages/brook ./
+# cp -rf ./openwrt-passwall-packages/sing-box ./
+# cp -rf ./openwrt-passwall-packages/trojan-go ./
+# cp -rf ./openwrt-passwall-packages/trojan-plus ./
+# cp -rf ./openwrt-passwall-packages/v2ray-geodata ./
+# rm -rf ./openwrt-passwall-packages 
  
 # update helloworld
-git clone  https://github.com/fw876/helloworld.git && cpdir helloworld
+# git clone  https://github.com/fw876/helloworld.git && cpdir helloworld
 
 # update istore
 git clone https://github.com/linkease/istore.git && cp -rf istore/luci/* . ; rm -rf ./istore
