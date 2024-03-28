@@ -5,8 +5,9 @@ cp -rf  `find $1/* -maxdepth 0 -type d` ./
 rm -rf $1
 }
 
-# update helloworld
-git clone  https://github.com/fw876/helloworld.git && cpdir helloworld
+# update helloworld/passwall/passwall2
+# git clone  https://github.com/fw876/helloworld.git && cpdir helloworld
+git clone https://github.com/kenzok8/small.git && cpdir small
 
 # update istore
 git clone https://github.com/linkease/istore.git && cp -rf istore/luci/* . ; rm -rf ./istore
