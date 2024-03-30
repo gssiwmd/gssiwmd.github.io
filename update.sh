@@ -8,7 +8,8 @@ rm -rf $1
 # update helloworld/passwall/passwall2
 # git clone  https://github.com/fw876/helloworld.git && cpdir helloworld
 git clone https://github.com/kenzok8/small.git && cpdir small
-rm -rf luci-app-bypass
+rm -rf luci-app-bypass && rm -rf mosdns && rm -rf luci-app-mosdns
+
 # update istore
 git clone https://github.com/linkease/istore.git && cp -rf istore/luci/* . ; rm -rf ./istore
 
