@@ -14,7 +14,7 @@ PKG_RELEASE:=0223
 include $(INCLUDE_DIR)/package.mk
 
 define Package/iptv-live
-  SECTION:=wmd
+  SECTION:=gssiwmd
   CATEGORY:=Wangmingde
   TITLE:=IPTV Live Channel
   PKGARCH:=all
