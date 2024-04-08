@@ -10,8 +10,6 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=iptv-live
 PKG_VERSION:=2024
 PKG_RELEASE:=0223
-PKG_LICENSE:=GPLv3
-PKG_LICENSE_FILES:=LICENSE
 
 include $(INCLUDE_DIR)/package.mk
 
