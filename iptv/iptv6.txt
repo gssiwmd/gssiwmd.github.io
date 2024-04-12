@@ -39,6 +39,7 @@ CGTN西语,https://pi.0472.org/live/cgtne.m3u8?token=240411
 CGTN法语,https://pi.0472.org/live/cgtnf.m3u8?token=240411
 CGTN阿语,https://pi.0472.org/live/cgtna.m3u8?token=240411
 CGTN俄语,https://pi.0472.org/live/cgtnr.m3u8?token=240411
+
 卫视,#genre#
 北京卫视,https://pi.0472.org/live/bjws.m3u8?token=240411
 东方卫视,https://pi.0472.org/live/dfws.m3u8?token=240411
