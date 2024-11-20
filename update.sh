@@ -15,6 +15,9 @@ git clone https://github.com/xiaorouji/openwrt-passwall && cpdir openwrt-passwal
 git clone https://github.com/xiaorouji/openwrt-passwall2 && cpdir openwrt-passwall2
 git clone https://github.com/xiaorouji/openwrt-passwall-packages && cpdir openwrt-passwall-packages
 
+# update OpenClash
+git clone --depth 1 https://github.com/vernesong/OpenClash.git;master  && cpdir OpenClash
+
 # update istore
 git clone https://github.com/linkease/istore.git && cp -rf istore/luci/* . ; rm -rf ./istore
 
