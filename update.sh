@@ -12,9 +12,10 @@ find * | grep -v '\<iptv\|README.md\|update.sh\|_config.yml\>' | xargs rm -rf
 
 # update helloworld/passwall/passwall2
 # git clone  https://github.com/fw876/helloworld.git && cpdir helloworld
-git clone https://github.com/kenzok8/small.git && cpdir small
+#git clone https://github.com/kenzok8/small.git && cpdir small
 ## rm -rf luci-app-bypass && rm -rf mosdns && rm -rf luci-app-mosdns
 rm -rf luci-app-bypass
+git clone  https://github.com/xiaorouji/openwrt-passwall && cpdir openwrt-passwall
 
 # update istore
 git clone https://github.com/linkease/istore.git && cp -rf istore/luci/* . ; rm -rf ./istore
