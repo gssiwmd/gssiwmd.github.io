@@ -21,7 +21,6 @@ git clone --depth 1 https://github.com/vernesong/OpenClash  && cpdir OpenClash
 # update istore
 git clone https://github.com/linkease/istore.git && cp -rf istore/luci/* . ; rm -rf ./istore
 
-
 # update ddnsto etc.
 git clone https://github.com/linkease/nas-packages.git && cp -rf ./nas-packages/multimedia/* . ; cp -rf ./nas-packages/network/services/* . ; rm -rf ./nas-packages
 
