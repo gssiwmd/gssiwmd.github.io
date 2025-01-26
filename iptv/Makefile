@@ -15,7 +15,7 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/iptv-live
   SECTION:=gssiwmd
-  CATEGORY:=Wangmingde
+  CATEGORY:=My router customization
   TITLE:=IPTV Live Channel
   PKGARCH:=all
 endef
