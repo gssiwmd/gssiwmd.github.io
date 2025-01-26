@@ -16,7 +16,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/iptv-live
   SECTION:=gssiwmd
   CATEGORY:=Common Components
-  TITLE:=IPTV Live Channel
+  TITLE:=GSSIWMD Common Components
   PKGARCH:=all
 endef
 
