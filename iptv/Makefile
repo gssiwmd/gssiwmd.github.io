@@ -1,8 +1,8 @@
 #
-# Copyright (C) 2010-2011 OpenWrt.org
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
+#  This is a piece of code for personal use. 
+#  I am not responsible for any unauthorized calls 
+#  and all possible consequences.   
+#  Copyright (C) 2023-2025 WangMingde
 #
 
 include $(TOPDIR)/rules.mk
