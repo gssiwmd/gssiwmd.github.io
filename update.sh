@@ -26,6 +26,8 @@ git clone https://github.com/linkease/nas-packages.git && cp -rf ./nas-packages/
 
 git clone  https://github.com/linkease/nas-packages-luci.git && cp -rf ./nas-packages-luci/luci/* . ; rm -rf ./nas-packages-luci
 
+git clone https://github.com/jerrykuku/luci-theme-argon.git
+
 # push to github
 git add -A
 git commit -am "update: $(date "+%Y-%m-%d %H:%M:%S")"
