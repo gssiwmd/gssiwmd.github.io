@@ -16,12 +16,6 @@ hkiptv.m3u/hkiptv.txt 海口联通iptv udpxy线路:
     
     http://192.168.100.1/iptv/hkiptv.txt
 
-iptv6.m3u/iptv6.txt 通用ipv6线路:
-    
-    http://192.168.100.1/iptv/iptv6.m3u
-    
-    http://192.168.100.1/iptv/iptv6.txt
-
 EPG接口地址：
 
     https://live.fanmingming.com/e.xml
