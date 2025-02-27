@@ -30,9 +30,9 @@ endef
 define Package/iptv-live/install
   mkdir -p $(1)/www/iptv
   
-	$(CP)  ./files/*.m3u $(1)/www/iptv
-	$(CP)  ./files/*.txt $(1)/www/iptv
-	$(CP)  ./files/update_xiaoya.sh $(1)/www/iptv
+	$(CP)  ./*.m3u $(1)/www/iptv
+	$(CP)  ./*.txt $(1)/www/iptv
+	$(CP)  ./update_xiaoya.sh $(1)/www/iptv
 endef
 
 $(eval $(call BuildPackage,iptv-live))
