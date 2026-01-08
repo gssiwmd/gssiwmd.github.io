@@ -4241,6 +4241,3 @@ msgstr "确定要删除此面板吗？"
 
 msgid "Default"
 msgstr "默认"
-
-msgid "Disable-Qtype"
-msgstr "禁用 Qtype"
