@@ -11,9 +11,9 @@ find * | grep -v '\<iptv\|README.md\|update.sh\|_config.yml\>' | xargs rm -rf
 
 
 # update passwall/passwall2 & openwrt-passwall-packages
-git clone https://github.com/xiaorouji/openwrt-passwall && cpdir openwrt-passwall
+##git clone https://github.com/xiaorouji/openwrt-passwall && cpdir openwrt-passwall
 # git clone https://github.com/xiaorouji/openwrt-passwall2 && cpdir openwrt-passwall2
-git clone https://github.com/xiaorouji/openwrt-passwall-packages && cpdir openwrt-passwall-packages
+##git clone https://github.com/xiaorouji/openwrt-passwall-packages && cpdir openwrt-passwall-packages
 
 # update OpenClash
  git clone -b dev --depth 1 https://github.com/vernesong/OpenClash  && cpdir OpenClash
