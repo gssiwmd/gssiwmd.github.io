@@ -32,6 +32,10 @@ git clone --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git && rm
 # update luci-app-mosdns
 git clone --depth 1 https://github.com/sbwml/luci-app-mosdns openwrt-mos && mv -n openwrt-mos/{*mosdns,v2dat} ./; rm -rf openwrt-mos
 
+# update momo and  nikiki
+git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-momo OpenWrt-momo && mv -n OpenWrt-momo/*momo ./ ; rm -rf OpenWrt-momo
+git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-nikki OpenWrt-nikki && mv -n OpenWrt-nikki/*nikki ./ ; rm -rf OpenWrt-nikki
+
 # push to github
 git add -A
 git commit -am "update: $(date "+%Y-%m-%d %H:%M:%S")"
