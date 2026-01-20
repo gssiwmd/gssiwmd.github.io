@@ -22,7 +22,7 @@ git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-package
 # git clone https://github.com/linkease/istore.git && cp -rf istore/luci/* . ; rm -rf ./istore
 
 # update ddnsto etc.
-git clone https://github.com/linkease/nas-packages.git && cp -rf ./nas-packages/multimedia/* . ; cp -rf ./nas-packages/network/services/ddnsto . ; rm -rf ./nas-packages
+git clone https://github.com/linkease/nas-packages.git &&  cp -rf ./nas-packages/network/services/ddnsto . ; rm -rf ./nas-packages
 git clone  https://github.com/linkease/nas-packages-luci.git && cp -rf ./nas-packages-luci/luci/luci-app-ddnsto . ; rm -rf ./nas-packages-luci
 
 # update argon theme
