@@ -173,18 +173,10 @@ PROXY_GROUPS=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    end
 " 2>/dev/null)
 
-set_disable_qtype()
-{
-   if [ -z "$1" ]; then
-      return
-   fi
-   [ -z "$disable_qtype_param" ] && disable_qtype_param="disable-qtype-$1=true" || disable_qtype_param="$disable_qtype_param&disable-qtype-$1=true"
-}
-
 yml_dns_get()
 {
    local section="$1" regex='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
-   local enabled port type ip group dns_type dns_address interface specific_group node_resolve http3 ecs_subnet ecs_override disable_qtype_param
+   local enabled port type ip group dns_type dns_address interface specific_group node_resolve http3 ecs_subnet ecs_override
 
    config_get_bool "enabled" "$section" "enabled" "1"
    [ "$enabled" = "0" ] && return
@@ -203,9 +195,8 @@ yml_dns_get()
    config_get_bool "skip_cert_verify" "$section" "skip_cert_verify" "0"
    config_get_bool "ecs_override" "$section" "ecs_override" "0"
    config_get "ecs_subnet" "$section" "ecs_subnet" ""
-   config_get_bool "disable_ipv4" "$section" "disable_ipv4" "0"
-   config_get_bool "disable_ipv6" "$section" "disable_ipv6" "0"
-   config_list_foreach "$section" "disable_qtype" set_disable_qtype
+   config_get "disable_ipv4" "$section" "disable_ipv4" "0"
+   config_get "disable_ipv6" "$section" "disable_ipv6" "0"
 
    if [[ "$ip" =~ "$regex" ]] || [ -n "$(echo "${ip}" | grep -Eo "${regex}")" ]; then
       ip="[${ip}]"
@@ -261,7 +252,6 @@ yml_dns_get()
    append_param "$ecs_override_param"
    append_param "$disable_ipv4_param"
    append_param "$disable_ipv6_param"
-   append_param "$disable_qtype_param"
 
    full_dns_address="$dns_type$dns_address$params"
 
@@ -356,23 +346,24 @@ add_default_from_dns = '${25}' == '1'
 sniffer_parse_pure_ip = '${26}' == '1'
 find_process_mode = '${27}'
 fake_ip_range = '${28}'
-ipv6_mode = '${29}'
-unified_delay = '${31}' == '1'
-respect_rules = '${32}' == '1'
-fake_ip_filter_mode = '${33}'
-routing_mark_setting = '${34}'
-quic_gso = '${35}' == '1'
-cors_origin = '${36}'
-geo_custom_url = '${37}'
-geoip_custom_url = '${38}'
-geosite_custom_url = '${39}'
-geoasn_custom_url = '${40}'
-lgbm_auto_update = '${41}' == '1'
-lgbm_custom_url = '${42}'
-lgbm_update_interval = '${43}'
-smart_collect = '${44}' == '1'
-smart_collect_size = '${45}'
-fake_ip_range6 = '${46}'
+global_client_fingerprint = '${29}'
+tun_device_setting = '${30}'
+unified_delay = '${32}' == '1'
+respect_rules = '${33}' == '1'
+fake_ip_filter_mode = '${34}'
+routing_mark_setting = '${35}'
+quic_gso = '${36}' == '1'
+cors_origin = '${37}'
+geo_custom_url = '${38}'
+geoip_custom_url = '${39}'
+geosite_custom_url = '${40}'
+geoasn_custom_url = '${41}'
+lgbm_auto_update = '${42}' == '1'
+lgbm_custom_url = '${43}'
+lgbm_update_interval = '${44}'
+smart_collect = '${45}' == '1'
+smart_collect_size = '${46}'
+fake_ip_range6 = '${47}'
 default_dashboard = '$default_dashboard'
 yacd_type = '$yacd_type'
 dashboard_type = '$dashboard_type'
@@ -433,6 +424,7 @@ threads << Thread.new do
       Value['tcp-concurrent'] = true if tcp_concurrent
       Value['unified-delay'] = true if unified_delay
       Value['find-process-mode'] = find_process_mode if find_process_mode != '0'
+      Value['global-client-fingerprint'] = global_client_fingerprint if global_client_fingerprint != '0'
 
       (Value['experimental'] ||= {})['quic-go-disable-gso'] = true if quic_gso
       if cors_origin != '0'
@@ -498,7 +490,7 @@ threads << Thread.new do
          Value['sniffer']['enable'] = false if Value.key?('sniffer')
       end
 
-      if en_mode_tun != '0' || ['2', '3'].include?(ipv6_mode)
+      if en_mode_tun != '0' || ['2', '3'].include?(tun_device_setting)
          Value['tun'] = {
             'enable' => true, 'stack' => stack_type, 'device' => 'utun',
             'dns-hijack' => ['127.0.0.1:53'], 'endpoint-independent-nat' => true,

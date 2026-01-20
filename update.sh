@@ -15,7 +15,7 @@ git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall && cpdi
 git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages && cpdir openwrt-passwall-packages
 
 # update OpenClash
- git clone -b dev --depth 1 https://github.com/vernesong/OpenClash  && cpdir OpenClash
+ git clone -b master --depth 1 https://github.com/vernesong/OpenClash  && cpdir OpenClash
 
 
 # update istore
