@@ -29,8 +29,6 @@ git clone --depth 1 https://github.com/linkease/nas-packages-luci.git && cp -rf 
 git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon.git && rm -rf ./luci-theme-argon/.git; rm -rf  ./luci-theme-argon/.github
 git clone --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git && rm -rf ./luci-app-argon-config/.git; rm -rf ./luci-app-argon-config/.github
 
-# update luci-app-mosdns
-git clone --depth 1 https://github.com/sbwml/luci-app-mosdns openwrt-mos && mv -n openwrt-mos/{*mosdns,v2dat} ./; rm -rf openwrt-mos
 
 # update momo and  nikiki
 git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-momo OpenWrt-momo && mv -n OpenWrt-momo/*momo ./ ; rm -rf OpenWrt-momo
