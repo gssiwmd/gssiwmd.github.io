@@ -32,7 +32,7 @@ git clone --depth 1 https://github.com/linkease/nas-packages.git &&  cp -rf ./na
 git clone --depth 1 https://github.com/linkease/nas-packages-luci.git && cp -rf ./nas-packages-luci/luci/luci-app-ddnsto . ; rm -rf ./nas-packages-luci
 
 #update  luci-app-openlist2
-git clone --depth 1 https://github.com/sbwml/luci-app-openlist2 oplist && mvdir oplist
+git clone --depth 1 https://github.com/sbwml/luci-app-openlist2 oplist && cpdir oplist
 
 # update argon theme
 git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon.git && rm -rf ./luci-theme-argon/.git; rm -rf  ./luci-theme-argon/.github
