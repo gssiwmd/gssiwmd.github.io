@@ -4,6 +4,12 @@ function cpdir() {
 cp -rf  `find $1/* -maxdepth 0 -type d` ./
 rm -rf $1
 }
+
+function mvdir() {
+mv -n `find $1/* -maxdepth 0 -type d` ./
+rm -rf $1
+}
+
 git pull
 
 #先删除除保留文件和目录以外的所有子目录及其文件、
