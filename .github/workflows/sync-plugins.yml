@@ -1,0 +1,71 @@
+name: Auto Sync Plugins
+
+on:
+  # 允许手动触发运行
+  workflow_dispatch:
+  # 设置定时任务：每天北京时间凌晨 4 点运行 (UTC 20:00)
+  schedule:
+    - cron: '0 20 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # 必须设置为 0，否则可能无法推送回仓库
+          fetch-depth: 0
+
+      - name: Set up Git config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Execute Update Script
+        run: |
+          # 定义你的 cpdir 函数
+          function cpdir() {
+            cp -rf  `find $1/* -maxdepth 0 -type d` ./
+            rm -rf $1
+          }
+          
+          # 1. 清理目录 (保留关键文件)
+          # 注意：在 Actions 环境中，不需要执行 git pull，checkout 步已经完成了
+          find * -maxdepth 0 | grep -v '\.git\|\.github\|iptv\|README.md\|update.sh\|_config.yml' | xargs rm -rf 
+
+          # 2. 开始更新插件 (保留你原始的逻辑)
+          
+          # Passwall
+          git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall && cpdir openwrt-passwall
+          git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages && cpdir openwrt-passwall-packages
+
+          # OpenClash
+          git clone -b master --depth 1 https://github.com/vernesong/OpenClash && cpdir OpenClash
+
+          # ddnsto
+          git clone --depth 1 https://github.com/linkease/nas-packages.git && cp -rf ./nas-packages/network/services/ddnsto . ; rm -rf ./nas-packages
+          git clone --depth 1 https://github.com/linkease/nas-packages-luci.git && cp -rf ./nas-packages-luci/luci/luci-app-ddnsto . ; rm -rf ./nas-packages-luci
+
+          # luci-app-openlist2
+          git clone --depth 1 https://github.com/sbwml/luci-app-openlist2 oplist && cpdir oplist
+
+          # Argon Theme
+          git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon.git && rm -rf ./luci-theme-argon/.git rm -rf ./luci-theme-argon/.github
+          git clone --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git && rm -rf ./luci-app-argon-config/.git rm -rf ./luci-app-argon-config/.github
+
+          # momo & nikki
+          git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-momo OpenWrt-momo && mv -n OpenWrt-momo/*momo ./ ; rm -rf OpenWrt-momo
+          git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-nikki OpenWrt-nikki && mv -n OpenWrt-nikki/*nikki ./ ; rm -rf OpenWrt-nikki
+
+      - name: Push changes
+        run: |
+          git add -A
+          # 只有当有文件变动时才 commit，防止脚本报错
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto Update: $(date "+%Y-%m-%d %H:%M:%S")"
+            git push
+          else
+            echo "No changes to commit"
+          fi
