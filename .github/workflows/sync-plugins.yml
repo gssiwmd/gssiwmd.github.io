@@ -1,43 +1,49 @@
 name: Auto Sync Plugins
 
 on:
-  # 允许手动触发运行
+  # 允许在 Actions 页面手动点击 "Run workflow" 触发
   workflow_dispatch:
-  # 设置定时任务：每天北京时间凌晨 4 点运行 (UTC 20:00)
+  # 设置定时任务：每天北京时间凌晨 05:00 运行 (UTC 21:00)
   schedule:
-    - cron: '0 20 * * *'
+    - cron: '0 21 * * *'
+
+# 授予 Actions 写入仓库的权限，解决 403 错误
+permissions:
+  contents: write
 
 jobs:
-  build:
+  update:
     runs-on: ubuntu-latest
     
     steps:
+      # 1. 检出代码
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          # 必须设置为 0，否则可能无法推送回仓库
           fetch-depth: 0
 
+      # 2. 配置 Git 用户信息（使用 GitHub Actions 官方机器人账号）
       - name: Set up Git config
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Execute Update Script
+      # 3. 执行脚本逻辑
+      - name: Update Plugins
         run: |
-          # 定义你的 cpdir 函数
+          # 定义快捷拷贝函数
           function cpdir() {
-            cp -rf  `find $1/* -maxdepth 0 -type d` ./
+            cp -rf `find $1/* -maxdepth 0 -type d` ./
             rm -rf $1
           }
-          
-          # 1. 清理目录 (保留关键文件)
-          # 注意：在 Actions 环境中，不需要执行 git pull，checkout 步已经完成了
+
+          # 清理当前目录：保留必要文件，防止删除 .git 导致无法推送
+          # 这一步非常关键，排除掉 .git 和 .github 文件夹
           find * -maxdepth 0 | grep -v '\.git\|\.github\|iptv\|README.md\|update.sh\|_config.yml' | xargs rm -rf 
 
-          # 2. 开始更新插件 (保留你原始的逻辑)
-          
-          # Passwall
+          # --- 开始下载插件 ---
+
+          # Passwall & Packages
           git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall && cpdir openwrt-passwall
           git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages && cpdir openwrt-passwall-packages
 
@@ -51,21 +57,23 @@ jobs:
           # luci-app-openlist2
           git clone --depth 1 https://github.com/sbwml/luci-app-openlist2 oplist && cpdir oplist
 
-          # Argon Theme
-          git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon.git && rm -rf ./luci-theme-argon/.git rm -rf ./luci-theme-argon/.github
-          git clone --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git && rm -rf ./luci-app-argon-config/.git rm -rf ./luci-app-argon-config/.github
+          # Argon Theme (清理其自带的 git/github 记录)
+          git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon.git && rm -rf ./luci-theme-argon/.git ./luci-theme-argon/.github
+          git clone --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git && rm -rf ./luci-app-argon-config/.git ./luci-app-argon-config/.github
 
           # momo & nikki
           git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-momo OpenWrt-momo && mv -n OpenWrt-momo/*momo ./ ; rm -rf OpenWrt-momo
           git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-nikki OpenWrt-nikki && mv -n OpenWrt-nikki/*nikki ./ ; rm -rf OpenWrt-nikki
 
-      - name: Push changes
+      # 4. 提交并强制推送
+      - name: Push Changes
         run: |
           git add -A
-          # 只有当有文件变动时才 commit，防止脚本报错
+          # 检查是否有文件变更，避免空提交报错
           if ! git diff --cached --quiet; then
             git commit -m "Auto Update: $(date "+%Y-%m-%d %H:%M:%S")"
-            git push
+            # 使用 -f 强制推送，解决 non-fast-forward 冲突
+            git push -f origin main
           else
-            echo "No changes to commit"
+            echo "No changes detected, skipping push."
           fi
