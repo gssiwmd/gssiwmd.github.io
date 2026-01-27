@@ -3,7 +3,7 @@ name: Auto Sync Plugins
 on:
   # 允许在 Actions 页面手动点击 "Run workflow" 触发
   workflow_dispatch:
-  # 设置定时任务：每天北京时间凌晨 05:00 运行 (UTC 21:00)
+  # 设置定时任务：每天北京时间凌晨 04:00 运行 (UTC 20:00)
   schedule:
     - cron: '0 20 * * *'
 
