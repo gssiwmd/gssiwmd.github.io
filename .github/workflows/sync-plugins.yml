@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   # 设置定时任务：每天北京时间凌晨 05:00 运行 (UTC 21:00)
   schedule:
-    - cron: '0 21 * * *'
+    - cron: '15 04 * * *'
 
 # 授予 Actions 写入仓库的权限，解决 403 错误
 permissions:
