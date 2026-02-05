@@ -44,15 +44,7 @@
           curl -L https://github.com/immortalwrt/packages/archive/refs/heads/master.tar.gz | tar -xz --strip-components=2 --wildcards "*/net/zerotier/"
 
       # 4. 提交并强制推送
-      - name: Push Changes
-        run: |
           git add -A
-          # 检查是否有文件变更，避免空提交报错
-          if ! git diff --cached --quiet; then
-            git commit -m "Auto Update: $(date "+%Y-%m-%d %H:%M:%S")"
-            # 使用 -f 强制推送，确保在 Actions 环境中覆盖远程分支
-            git push -f origin main
-          else
-            echo "No changes detected, skipping push."
-          fi
-
+          git commit -m "Auto Update: $(date "+%Y-%m-%d %H:%M:%S")"
+          # 使用 -f 强制推送，确保在 Actions 环境中覆盖远程分支
+          git push -f origin main
