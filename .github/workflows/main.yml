@@ -70,7 +70,7 @@ jobs:
           # 提取 luci-app-zerotier (界面)
           # --strip-components=2 用于跳过压缩包内的 'luci-master/applications/' 路径层级
           curl -L https://github.com/immortalwrt/luci/archive/refs/heads/master.tar.gz | tar -xz --strip-components=2 --wildcards "*/applications/luci-app-zerotier/"
-
+          sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' ./luci-app-zerotier/Makefile
           # 2. 提取 zerotier (核心程序)
            # 压缩包内路径是: packages-master/net/zerotier/
            # 我们剥离前两层 (packages-master 和 net)，保留 zerotier 目录
