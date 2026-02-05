@@ -10,7 +10,6 @@ on:
 # 授予 Actions 写入仓库的权限，必须包含 workflows: write 以允许更新自身
 permissions:
   contents: write
-  workflows: write
 
 jobs:
   update:
