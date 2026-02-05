@@ -71,9 +71,10 @@ jobs:
           # --strip-components=2 用于跳过压缩包内的 'luci-master/applications/' 路径层级
           curl -L https://github.com/immortalwrt/luci/archive/refs/heads/master.tar.gz | tar -xz --strip-components=2 --wildcards "*/applications/luci-app-zerotier/"
 
-          # 提取 zerotier (核心程序)
-          # --strip-components=3 用于跳过压缩包内的 'packages-master/net/zerotier/' 路径层级
-          curl -L https://github.com/immortalwrt/packages/archive/refs/heads/master.tar.gz | tar -xz --strip-components=3 --wildcards "*/net/zerotier/"
+          # 2. 提取 zerotier (核心程序)
+           # 压缩包内路径是: packages-master/net/zerotier/
+           # 我们剥离前两层 (packages-master 和 net)，保留 zerotier 目录
+          curl -L https://github.com/immortalwrt/packages/archive/refs/heads/master.tar.gz | tar -xz --strip-components=2 --wildcards "*/net/zerotier/"
 
       # 4. 提交并强制推送
       - name: Push Changes
