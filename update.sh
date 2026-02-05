@@ -34,8 +34,6 @@
           git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-momo OpenWrt-momo && mv -n OpenWrt-momo/*momo ./ ; rm -rf OpenWrt-momo
           git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-nikki OpenWrt-nikki && mv -n OpenWrt-nikki/*nikki ./ ; rm -rf OpenWrt-nikki
 
-          # --- 特殊提取：ZeroTier (使用 Tar 方式直接提取特定目录) ---
-          
           # 提取 luci-app-zerotier (界面)
           # --strip-components=2 用于跳过压缩包内的 'luci-master/applications/' 路径层级
           curl -L https://github.com/immortalwrt/luci/archive/refs/heads/master.tar.gz | tar -xz --strip-components=2 --wildcards "*/applications/luci-app-zerotier/"
