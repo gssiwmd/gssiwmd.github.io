@@ -7,7 +7,7 @@ on:
   schedule:
     - cron: '0 20 * * *'
 
-# 授予 Actions 写入仓库的权限，解决 403 错误
+# 授予 Actions 写入仓库的权限
 permissions:
   contents: write
 
@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 2. 配置 Git 用户信息（使用 GitHub Actions 官方机器人账号）
+      # 2. 配置 Git 用户信息
       - name: Set up Git config
         run: |
           git config --global user.name "github-actions[bot]"
@@ -37,8 +37,7 @@ jobs:
             rm -rf $1
           }
 
-          # 清理当前目录：保留必要文件，防止删除 .git 导致无法推送
-          # 这一步非常关键，排除掉 .git 和 .github 文件夹
+          # 清理当前目录：排除掉 .git, .github 以及你的保留文件
           find * -maxdepth 0 | grep -v '\.git\|\.github\|iptv\|README.md\|update.sh\|_config.yml' | xargs rm -rf 
 
           # --- 开始下载插件 ---
@@ -57,25 +56,30 @@ jobs:
           # luci-app-openlist2
           git clone --depth 1 https://github.com/sbwml/luci-app-openlist2 oplist && cpdir oplist
 
-          # Argon Theme (清理其自带的 git/github 记录)
+          # Argon Theme
           git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon.git && rm -rf ./luci-theme-argon/.git ./luci-theme-argon/.github
           git clone --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git && rm -rf ./luci-app-argon-config/.git ./luci-app-argon-config/.github
 
           # momo & nikki
           git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-momo OpenWrt-momo && mv -n OpenWrt-momo/*momo ./ ; rm -rf OpenWrt-momo
           git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-nikki OpenWrt-nikki && mv -n OpenWrt-nikki/*nikki ./ ; rm -rf OpenWrt-nikki
+
+          # --- 特殊提取：ZeroTier (使用 Tar 方式避免巨大仓库检出) ---
           
+          # 提取 luci-app-zerotier (界面)
+          curl -L https://github.com/immortalwrt/luci/archive/refs/heads/master.tar.gz | tar -xz --strip-components=2 --wildcards "*/applications/luci-app-zerotier/"
+
+          # 提取 zerotier (核心程序)
+          curl -L https://github.com/immortalwrt/packages/archive/refs/heads/master.tar.gz | tar -xz --strip-components=3 --wildcards "*/net/zerotier/"
 
       # 4. 提交并强制推送
       - name: Push Changes
         run: |
           git add -A
-          # 检查是否有文件变更，避免空提交报错
           if ! git diff --cached --quiet; then
             git commit -m "Auto Update: $(date "+%Y-%m-%d %H:%M:%S")"
-            # 使用 -f 强制推送，解决 non-fast-forward 冲突
             git push -f origin main
           else
             echo "No changes detected, skipping push."
           fi
-
+          
