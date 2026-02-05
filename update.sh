@@ -43,7 +43,7 @@ git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-nikki OpenWrt-nikk
 mkdir temp-luci && cd temp-luci
 # 初始化并只拉取特定目录 (需要 Git 2.25+)
 git clone --depth 1 --filter=blob:none --sparse https://github.com/immortalwrt/luci.git . 
-git sparse-checkout add luci-app-zerotier/
+git add --sparse luci-app-zerotier
 mv applications/luci-app-zerotier ../
 cd ..
 rm -rf temp-luci
