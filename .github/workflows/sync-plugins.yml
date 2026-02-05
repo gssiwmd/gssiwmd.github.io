@@ -10,7 +10,8 @@ on:
 # 授予 Actions 写入仓库的权限
 permissions:
   contents: write
-
+  workflows: write  # 必须添加这一行，才允许脚本更新工作流文件
+  
 jobs:
   update:
     runs-on: ubuntu-latest
