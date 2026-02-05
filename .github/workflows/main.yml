@@ -1,0 +1,83 @@
+name: Auto Sync Plugins
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 20 * * *'
+
+# 授予 Actions 写入权限，包括工作流权限
+permissions:
+  contents: write
+  workflows: write 
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Update Plugins
+        run: |
+          # 定义快捷拷贝函数
+          function cpdir() {
+            cp -rf `find $1/* -maxdepth 0 -type d` ./
+            rm -rf $1
+          }
+
+          # 1. 安全清理：只删除当前目录下不在排除列表中的文件夹和文件
+          # 这样可以确保 .git 和 .github 目录绝对安全
+          ls -A | grep -vE '\.git|\.github|iptv|README.md|update.sh|_config.yml' | xargs rm -rf
+
+          # --- 开始下载插件 ---
+
+          # Passwall & Packages
+          git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall && cpdir openwrt-passwall
+          git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages && cpdir openwrt-passwall-packages
+
+          # OpenClash
+          git clone -b master --depth 1 https://github.com/vernesong/OpenClash && cpdir OpenClash
+
+          # ddnsto
+          git clone --depth 1 https://github.com/linkease/nas-packages.git && cp -rf ./nas-packages/network/services/ddnsto . ; rm -rf ./nas-packages
+          git clone --depth 1 https://github.com/linkease/nas-packages-luci.git && cp -rf ./nas-packages-luci/luci/luci-app-ddnsto . ; rm -rf ./nas-packages-luci
+
+          # luci-app-openlist2
+          git clone --depth 1 https://github.com/sbwml/luci-app-openlist2 oplist && cpdir oplist
+
+          # Argon Theme
+          git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon.git && rm -rf ./luci-theme-argon/.git ./luci-theme-argon/.github
+          git clone --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git && rm -rf ./luci-app-argon-config/.git ./luci-app-argon-config/.github
+
+          # momo & nikki
+          git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-momo OpenWrt-momo && mv -n OpenWrt-momo/*momo ./ ; rm -rf OpenWrt-momo
+          git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-nikki OpenWrt-nikki && mv -n OpenWrt-nikki/*nikki ./ ; rm -rf OpenWrt-nikki
+
+          # --- 特殊提取：ZeroTier ---
+          
+          # 提取 luci-app-zerotier (界面)
+          # 注意：--strip-components=2 会去掉“压缩包根目录/applications/”这两层
+          curl -L https://github.com/immortalwrt/luci/archive/refs/heads/master.tar.gz | tar -xz --strip-components=2 --wildcards "*/applications/luci-app-zerotier/"
+
+          # 提取 zerotier (核心程序)
+          # 注意：--strip-components=3 会去掉“压缩包根目录/net/zerotier/”之前的路径
+          curl -L https://github.com/immortalwrt/packages/archive/refs/heads/master.tar.gz | tar -xz --strip-components=3 --wildcards "*/net/zerotier/"
+
+      - name: Push Changes
+        run: |
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto Update: $(date "+%Y-%m-%d %H:%M:%S")"
+            # 使用强制推送确保 Actions 同步成功
+            git push -f origin main
+          else
+            echo "No changes detected, skipping push."
+          fi
