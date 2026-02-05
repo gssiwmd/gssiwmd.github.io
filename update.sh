@@ -38,6 +38,16 @@ git clone --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git && rm
 git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-momo OpenWrt-momo && mv -n OpenWrt-momo/*momo ./ ; rm -rf OpenWrt-momo
 git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-nikki OpenWrt-nikki && mv -n OpenWrt-nikki/*nikki ./ ; rm -rf OpenWrt-nikki
 
+# update luci-app-zerotier & zerotier
+# 创建一个临时目录并进入
+mkdir temp-luci && cd temp-luci
+# 初始化并只拉取特定目录 (需要 Git 2.25+)
+git clone --depth 1 --filter=blob:none --sparse https://github.com/immortalwrt/luci.git .
+git sparse-checkout set applications/luci-app-zerotier
+mv applications/luci-app-zerotier ../
+cd ..
+rm -rf temp-luci
+
 # push to github
 git add -A
 git commit -am "update: $(date "+%Y-%m-%d %H:%M:%S")"
