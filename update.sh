@@ -13,8 +13,8 @@
           # --- 开始下载插件 ---
 
           # Passwall & Packages
-          git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall && cpdir openwrt-passwall
-          git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages && cpdir openwrt-passwall-packages
+          # git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall && cpdir openwrt-passwall
+          # git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages && cpdir openwrt-passwall-packages
 
           # OpenClash
           git clone -b master --depth 1 https://github.com/vernesong/OpenClash && cpdir OpenClash
