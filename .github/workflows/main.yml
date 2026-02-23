@@ -1,0 +1,91 @@
+name: Auto Sync Plugins
+
+on:
+  # 允许在 Actions 页面手动点击 "Run workflow" 触发
+  workflow_dispatch:
+  # 设置定时任务：每天北京时间凌晨 04:00 运行 (UTC 20:00)
+  schedule:
+    - cron: '0 20 * * *'
+
+# 授予 Actions 写入仓库的权限，必须包含 workflows: write 以允许更新自身
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 检出代码
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. 配置 Git 用户信息
+      - name: Set up Git config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # 3. 执行脚本逻辑
+      - name: Update Plugins
+        run: |
+          # 定义快捷拷贝函数
+          function cpdir() {
+            cp -rf `find $1/* -maxdepth 0 -type d` ./
+            rm -rf $1
+          }
+          
+          git pull
+          # 1. 安全清理：排除掉 .git, .github 以及你的保留文件/目录
+          # 使用 ls -A 配合 grep 是为了防止 find 命令在某些环境下误触隐藏的 .github 文件夹
+          ls -A | grep -vE '\.git|\.github|iptv|README.md|update.sh|_config.yml' | xargs rm -rf 
+
+          # --- 开始下载插件 ---
+
+          # Passwall & Packages
+          git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall && cpdir openwrt-passwall
+          git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages && cpdir openwrt-passwall-packages
+
+          # OpenClash
+          git clone -b master --depth 1 https://github.com/vernesong/OpenClash && cpdir OpenClash
+
+          # ddnsto
+          git clone --depth 1 https://github.com/linkease/nas-packages.git && cp -rf ./nas-packages/network/services/ddnsto . ; rm -rf ./nas-packages
+          git clone --depth 1 https://github.com/linkease/nas-packages-luci.git && cp -rf ./nas-packages-luci/luci/luci-app-ddnsto . ; rm -rf ./nas-packages-luci
+
+          # luci-app-openlist2
+          git clone --depth 1 https://github.com/sbwml/luci-app-openlist2 oplist && cpdir oplist
+
+          # Argon Theme (清理其自带的 git/github 记录)
+          git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon.git && rm -rf ./luci-theme-argon/.git ./luci-theme-argon/.github
+          git clone --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git && rm -rf ./luci-app-argon-config/.git ./luci-app-argon-config/.github
+
+          # momo & nikki
+          git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-momo OpenWrt-momo && mv -n OpenWrt-momo/*momo ./ ; rm -rf OpenWrt-momo
+          git clone --depth 1 https://github.com/nikkinikki-org/OpenWrt-nikki OpenWrt-nikki && mv -n OpenWrt-nikki/*nikki ./ ; rm -rf OpenWrt-nikki
+
+          # --- 特殊提取：ZeroTier (使用 Tar 方式直接提取特定目录) ---
+          
+          # 提取 luci-app-zerotier (界面)
+          # --strip-components=2 用于跳过压缩包内的 'luci-master/applications/' 路径层级
+          curl -L https://github.com/immortalwrt/luci/archive/refs/heads/master.tar.gz | tar -xz --strip-components=2 --wildcards "*/applications/luci-app-zerotier/"
+          sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' ./luci-app-zerotier/Makefile
+          # 2. 提取 zerotier (核心程序)
+           # 压缩包内路径是: packages-master/net/zerotier/
+           # 我们剥离前两层 (packages-master 和 net)，保留 zerotier 目录
+          curl -L https://github.com/immortalwrt/packages/archive/refs/heads/master.tar.gz | tar -xz --strip-components=2 --wildcards "*/net/zerotier/"
+
+      # 4. 提交并强制推送
+      - name: Push Changes
+        run: |
+          git add -A
+          # 检查是否有文件变更，避免空提交报错
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto Update: $(date "+%Y-%m-%d %H:%M:%S")"
+            # 使用 -f 强制推送，确保在 Actions 环境中覆盖远程分支
+            git push
+          else
+            echo "No changes detected, skipping push."
+          fi
