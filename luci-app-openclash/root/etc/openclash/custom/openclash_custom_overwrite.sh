@@ -12,8 +12,6 @@ LOG_FILE="/tmp/openclash.log"
 #Config Path
 CONFIG_FILE="$1"
 
-    #A value must not contain \ ; ` or $( ), write a regex dot as [.] and use a single quoted
-    #argument for a literal dollar sign
     #Simple Demo:
     #Key Overwrite Demo
     #1--config path
