@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://whois.pconline.com.cn">
 <link rel="preconnect" href="https://api.ip.sb">
 <link rel="preconnect" href="https://api.ipify.org">
-<link rel="preconnect" href="https://myip.ipip.net">
+<link rel="preconnect" href="http://myip.ipip.net">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
 <title>IP 地址查询</title>
@@ -30,6 +30,13 @@
                             <div class="myip-ip-section">
                                 <p class="myip-section-title">
                                     <%:IP Address%>
+                                    <span class="myip-toolbar">
+                                        <svg id="eye-icon" class="myip-icon-btn" width="20" height="20" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="return privacy_my_ip(this)">
+                                            <title><%:Hide IP%></title>
+                                            <use id="eye-open" href="#oc-icon-eye"></use>
+                                            <use id="eye-closed" class="oc-hidden" href="#oc-icon-eye-off"></use>
+                                        </svg>
+                                    </span>
                                 </p>
 
                                 <div class="myip-ip-list">
@@ -63,29 +70,18 @@
                                 <p class="myip-section-title">
                                     <%:Access Check%>
                                     <span class="myip-toolbar">
-                                        <button type="button" class="icon-btn" onclick="return privacy_my_ip(this)">
-                                            <svg id="eye-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <title><%:Hide IP%></title>
-                                                <use id="eye-open" href="#oc-icon-eye"></use>
-                                                <use id="eye-closed" class="oc-hidden" href="#oc-icon-eye-off"></use>
-                                            </svg>
-                                        </button>
-                                        <button type="button" class="icon-btn" onclick="return toggle_mode_by_icon(this)">
-                                            <svg id="mode-icon" width="14" height="14" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <title><%:Router Mode%></title>
-                                                <rect class="mode-body" x="4" y="28" width="40" height="14" rx="2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path class="mode-line" d="M14 35L22 35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <rect class="mode-dot" x="30" y="33" width="3" height="3" rx="1.5"/>
-                                                <path class="mode-antenna" d="M12 28L12 8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path class="mode-antenna" d="M36 28V8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </button>
-                                        <button type="button" class="icon-btn" onclick="return refresh_myip(this)">
-                                            <svg id="data-refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <title><%:Refresh%></title>
-                                                <use href="#oc-icon-refresh"/>
-                                            </svg>
-                                        </button>
+                                        <svg id="mode-icon" class="mode-icon myip-icon-btn" width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="return toggle_mode_by_icon(this)">
+                                            <title><%:Router Mode%></title>
+                                            <rect x="4" y="28" width="40" height="14" rx="2" fill="#2F88FF" stroke="#333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M14 35L22 35" stroke="#FFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <rect x="30" y="33" width="4" height="4" rx="2" fill="#FFF"/>
+                                            <path d="M12 28L12 8" stroke="#333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M36 28V8" stroke="#333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        <svg id="data-refresh-icon" class="myip-icon-btn" width="20" height="20" onclick="return refresh_myip(this)">
+                                            <title><%:Refresh%></title>
+                                            <use href="#oc-icon-refresh"/>
+                                        </svg>
                                     </span>
                                 </p>
 
@@ -147,49 +143,13 @@
     function ocRandomInterval(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
-    var overflowTitleFrame = null;
-    var overflowTitleElements = null;
-    var cardHeightFrame = null;
-    function syncCardHeights() {
-        if (cardHeightFrame) return;
-        var schedule = window.requestAnimationFrame || function(callback) { return setTimeout(callback, 0); };
-        cardHeightFrame = schedule(function() {
-            cardHeightFrame = null;
-            var items = document.querySelectorAll('.myip-card-item');
-            if (!items.length) return;
-            items.forEach(function(item) {
-                item.style.transition = 'none';
-                item.style.minHeight = '';
-            });
-            var max = 0;
-            items.forEach(function(item) {
-                var h = item.getBoundingClientRect().height;
-                if (h > max) max = h;
-            });
-            max = max ? Math.ceil(max) + 'px' : '';
-            items.forEach(function(item) {
-                item.style.minHeight = max;
-                item.style.transition = '';
-            });
-        });
-    }
     function addTitleOnOverflow() {
-        if (overflowTitleFrame) return;
-        var schedule = window.requestAnimationFrame || function(callback) { return setTimeout(callback, 0); };
-        overflowTitleFrame = schedule(function() {
-            overflowTitleFrame = null;
-            if (!overflowTitleElements) {
-                overflowTitleElements = document.querySelectorAll('.myip-ip-addr, .myip-ip-geo');
+        document.querySelectorAll('.myip-ip-addr, .myip-ip-geo').forEach(function (span) {
+            if (span.scrollWidth > span.clientWidth && localStorage.getItem('privacy_my_ip') !== 'true') {
+                span.setAttribute('title', span.textContent);
+            } else {
+                span.removeAttribute('title');
             }
-            var isPrivate = localStorage.getItem('privacy_my_ip') === 'true';
-            overflowTitleElements.forEach(function (span) {
-                if (!isPrivate && span.scrollWidth > span.clientWidth) {
-                    span.setAttribute('title', span.textContent);
-                } else {
-                    span.removeAttribute('title');
-                }
-            });
-            syncCardHeights();
         });
     }
     function ip_skk()
@@ -229,11 +189,6 @@
         if (refresh_ip) { clearInterval(refresh_ip); refresh_ip = null; }
     }
 
-    function abortAllRequests() {
-        if (ipCheckXHR) { try { ipCheckXHR.abort(); } catch(e) {} ipCheckXHR = null; }
-        if (httpCheckXHR) { try { httpCheckXHR.abort(); } catch(e) {} httpCheckXHR = null; }
-    }
-
     var refresh_http;
     var refresh_ip;
     var ipCheckXHR = null;
@@ -246,12 +201,12 @@
     var SpeedHistory = {
         max: 10,
         data: { baidu:[], 163:[], github:[], youtube:[] },
-        prevPath: { baidu: null, 163: null, github: null, youtube: null },
+        _prevPath: { baidu: null, 163: null, github: null, youtube: null },
         push: function(svc, ms) {
             this.data[svc].push(ms);
             if (this.data[svc].length > this.max) this.data[svc].shift();
         },
-        buildPath: function(pts) {
+        _buildPath: function(pts) {
             var w = 90, h = 20, pad = 4;
             var max = Math.max.apply(null, pts), min = Math.min.apply(null, pts);
             var range = max - min || 1;
@@ -297,14 +252,14 @@
                 return;
             }
 
-            var g = this.buildPath(pts);
+            var g = this._buildPath(pts);
             var points = g.points || [];
 
             var ghostHTML = '';
-            if (this.prevPath[svc] && pts.length >= 3) {
-                ghostHTML = '<path d="' + this.prevPath[svc] + '" class="spark-ghost" style="stroke:' + stroke + '"/>';
+            if (this._prevPath[svc] && pts.length >= 3) {
+                ghostHTML = '<path d="' + this._prevPath[svc] + '" class="spark-ghost" style="stroke:' + stroke + '"/>';
             }
-            this.prevPath[svc] = g.d;
+            this._prevPath[svc] = g.d;
 
             el.innerHTML =
                 '<svg viewBox="0 0 ' + g.w + ' ' + g.h + '" class="myip-sparkline-svg">' +
@@ -420,7 +375,7 @@
         },
         reset: function(svc) {
             this.data[svc] = [];
-            this.prevPath[svc] = null;
+            this._prevPath[svc] = null;
         }
     };
 
@@ -553,7 +508,7 @@
             document.head.appendChild(script);
         },
         getIpipIP: () => {
-            IP.get(`https://myip.ipip.net?z=${random}`, 'text')
+            IP.get(`http://myip.ipip.net?z=${random}`, 'text')
             .then(resp => {
                 const ipMatch = resp.data.match(/当前 IP：([0-9A-Fa-f:.]+)/);
                 const geoMatch = resp.data.match(/来自于：(.+)/);
@@ -743,7 +698,8 @@
     var use_router_mode = true;
 
     function toggle_mode_by_icon(svgElement) {
-        if (use_router_mode) {
+        var rect = svgElement.querySelector('rect[fill="#2F88FF"]');
+        if (rect && rect.getAttribute('fill') === '#2F88FF') {
             use_router_mode = false;
             localStorage.setItem('myip_check_mode', 'false');
             update_mode_icon();
@@ -760,13 +716,26 @@
 
     function update_mode_icon() {
         var modeIcon = document.getElementById('mode-icon');
+        var rect = modeIcon.querySelector('rect[x="4"]');
+        var paths = modeIcon.querySelectorAll('path');
+        var smallRect = modeIcon.querySelector('rect[x="30"]');
         var titleElement = modeIcon.querySelector('title');
 
         if (use_router_mode) {
-            modeIcon.classList.remove('mode-browser');
+            rect.setAttribute('fill', '#2F88FF');
+            rect.setAttribute('stroke', '#333');
+            paths[0].setAttribute('stroke', '#FFF');
+            paths[1].setAttribute('stroke', '#333');
+            paths[2].setAttribute('stroke', '#333');
+            smallRect.setAttribute('fill', '#FFF');
             if (titleElement) titleElement.textContent = '<%:Router Mode%>';
         } else {
-            modeIcon.classList.add('mode-browser');
+            rect.setAttribute('fill', '#6B7280');
+            rect.setAttribute('stroke', '#9CA3AF');
+            paths[0].setAttribute('stroke', '#D1D5DB');
+            paths[1].setAttribute('stroke', '#9CA3AF');
+            paths[2].setAttribute('stroke', '#9CA3AF');
+            smallRect.setAttribute('fill', '#D1D5DB');
             if (titleElement) titleElement.textContent = '<%:Browser Mode%>';
         }
     }
@@ -996,25 +965,14 @@
         } else {
             update_eye_icon(true);
         }
-
-        syncCardHeights();
     }
 
     window.addEventListener('load', function() {
         init_page();
     });
 
-    window.addEventListener('resize', function() {
-        syncCardHeights();
-    });
-
     window.addEventListener('beforeunload', function() {
         clearAllIntervals();
-        abortAllRequests();
-    });
-    window.addEventListener('pagehide', function() {
-        clearAllIntervals();
-        abortAllRequests();
     });
 </script>
 </html>
