@@ -117,7 +117,7 @@ config_cus_up()
 	            Value['proxies'].reverse.each{
 	            |x|
                   if not '$key_match_param'.empty? then
-                     threads << Thread.new {
+                     threads << YAML::Inline.new {
                         if not /$key_match_param/i =~ x['name'] then
                            Value['proxies'].delete(x)
                            Value['proxy-groups'].each{
@@ -133,7 +133,7 @@ config_cus_up()
                      };
                   end;
                   if not '$key_ex_match_param'.empty? then
-                     threads << Thread.new {
+                     threads << YAML::Inline.new {
                         if /$key_ex_match_param/i =~ x['name'] then
                            if Value['proxies'].include?(x) then
                               Value['proxies'].delete(x)
@@ -155,7 +155,7 @@ config_cus_up()
             if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
                Value['proxy-providers'].values.each do
                   |i|
-                  threads << Thread.new {
+                  threads << YAML::Inline.new {
                      if not '$key_match_param'.empty? then
                         i['filter'] = '(?i)$key_match_param';
                      end;
@@ -349,6 +349,7 @@ sub_info_get()
    config_get "address" "$section" "address" ""
    config_get "keyword" "$section" "keyword" ""
    config_get "ex_keyword" "$section" "ex_keyword" ""
+   config_get_bool "keyword_option" "$section" "keyword_option" "1"
    config_get "emoji" "$section" "emoji" ""
    config_get "udp" "$section" "udp" ""
    config_get "skip_cert_verify" "$section" "skip_cert_verify" ""
@@ -396,20 +397,22 @@ sub_info_get()
       return
    fi
 
-   if [ ! -z "$keyword" ] || [ ! -z "$ex_keyword" ]; then
-      config_list_foreach "$section" "keyword" server_key_match "keyword"
-      config_list_foreach "$section" "ex_keyword" server_key_match "ex_keyword"
-   fi
+   if [ "$keyword_option" -eq 1 ]; then
+      if [ ! -z "$keyword" ] || [ ! -z "$ex_keyword" ]; then
+         config_list_foreach "$section" "keyword" server_key_match "keyword"
+         config_list_foreach "$section" "ex_keyword" server_key_match "ex_keyword"
+      fi
 
-   if [ -n "$de_ex_keyword" ]; then
-      for i in $de_ex_keyword;
-      do
-      	if [ -z "$key_ex_match_param" ]; then
-      	   key_ex_match_param="($i)"
-      	else
-      	   key_ex_match_param="$key_ex_match_param|($i)"
-        fi
-      done
+      if [ -n "$de_ex_keyword" ]; then
+         for i in $de_ex_keyword;
+         do
+         	if [ -z "$key_ex_match_param" ]; then
+         	   key_ex_match_param="($i)"
+         	else
+         	   key_ex_match_param="$key_ex_match_param|($i)"
+            fi
+         done
+      fi
    fi
 
    if [ "$sub_convert" -eq 0 ]; then
