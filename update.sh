@@ -19,7 +19,7 @@ git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall && cpdi
 git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages && cpdir openwrt-passwall-packages
 
 # OpenClash
-git clone -b master --depth 1 https://github.com/vernesong/OpenClash && cpdir OpenClash
+git clone -b dev --depth 1 https://github.com/vernesong/OpenClash && cpdir OpenClash
 
 # ddnsto
 git clone --depth 1 https://github.com/linkease/nas-packages.git && cp -rf ./nas-packages/network/services/ddnsto . ; rm -rf ./nas-packages
