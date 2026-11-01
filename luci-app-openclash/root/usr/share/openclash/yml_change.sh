@@ -20,7 +20,6 @@ china_ip_route=$(uci_get_config "china_ip_route" || echo 0)
 china_ip6_route=$(uci_get_config "china_ip6_route" || echo 0)
 china_ip_route_domain_source=$(uci_get_config "china_ip_route_domain_source" || echo "mrs")
 enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
-disable_tun_gso=$(uci_get_config "disable_tun_gso" || echo 0)
 fake_ip_filter_mode="${33}"
 [ -z "$fake_ip_filter_mode" ] && fake_ip_filter_mode="blacklist"
 default_dashboard=$(uci_get_config "default_dashboard" || echo "metacubexd")
@@ -169,9 +168,13 @@ sys_dns_append()
 }
 
 PROXY_GROUPS=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-   Value = YAML.load_file_cached('$CONFIG_FILE', '/tmp/yaml_change_marshal') rescue nil
-   if Value.is_a?(Hash) && Value['proxy-groups'].is_a?(Array)
-      Value['proxy-groups'].each { |x| puts x['name'] if x.key?('name') }
+   begin
+      Value = YAML.load_file_cached('$CONFIG_FILE', '/tmp/yaml_change_marshal')
+      if Value.key?('proxy-groups') && Value['proxy-groups'].is_a?(Array)
+         Value['proxy-groups'].each { |x| puts x['name'] if x.key?('name') }
+      end
+   rescue Exception => e
+      YAML.LOG_ERROR('proxy-groups Get Failed,【%s】' % [e.message])
    end
 " 2>/dev/null)
 
@@ -327,19 +330,7 @@ def merge_list_from_file(dns_hash, key, file_path)
    return unless File.exist?(file_path)
    lines = File.readlines(file_path).map { |l| l.gsub(/#.*$/, '').strip }.reject(&:empty?)
    return if lines.empty?
-   if !dns_hash[key].nil? && !dns_hash[key].is_a?(Array)
-      YAML.LOG_WARN('Invalid Option Value, Replaced With The Custom Rule List:【%s】' % [key])
-      dns_hash[key] = lines
-   else
-      (dns_hash[key] ||= []).unshift(*lines).uniq!
-   end
-end
-
-def same_domain_tree?(filter_entry, domain)
-   a = filter_entry.to_s.strip.sub(/\A(?:\+\.|\*\.|\.|\*)/, '').downcase
-   b = domain.to_s.strip.sub(/\A(?:\+\.|\*\.|\.|\*)/, '').downcase
-   return false if a.empty? || b.empty? || a.include?(',')
-   a == b || a.end_with?('.' + b) || b.end_with?('.' + a)
+   (dns_hash[key] ||= []).unshift(*lines).uniq!
 end
 
 def http_origin(raw_url)
@@ -440,7 +431,6 @@ begin
    fake_ip_filter_mode = '$fake_ip_filter_mode'
    routing_mark_setting = '${34}'
    quic_gso = '${35}' == '1'
-   disable_tun_gso = '$disable_tun_gso' == '1'
    cors_origin = http_origin(ENV['OPENCLASH_CORS_CUSTOM_URL']) || controller_origin(ENV['OPENCLASH_CORS_DOMAIN'], ENV['OPENCLASH_CORS_PORT'], ENV['OPENCLASH_CORS_SSL'])
    geo_custom_url = '${37}'
    geoip_custom_url = '${38}'
@@ -588,7 +578,7 @@ begin
                'dns-hijack' => ['127.0.0.1:53'], 'endpoint-independent-nat' => true,
                'auto-route' => false, 'auto-detect-interface' => false,
                'auto-redirect' => false, 'strict-route' => false, 'disable-icmp-forwarding' => false,
-               'gso' => !disable_tun_gso
+               'gso' => true
             }
             Value['tun'].delete('iproute2-table-index')
          else
@@ -741,7 +731,7 @@ begin
                if filter_mode == 'whitelist'
                   filters = Value.dig('dns', 'fake-ip-filter')
                   if filters.is_a?(Array)
-                     deleted_filters = filters.select { |f| pass_domains.any? { |d| same_domain_tree?(f, d) } }
+                     deleted_filters = filters.select { |f| pass_domains.any? { |d| f.to_s.include?(d) } }
                      if deleted_filters.any?
                         Value['dns']['fake-ip-filter'] -= deleted_filters
                         deleted_filters.each do |f|
@@ -764,7 +754,7 @@ begin
             end
             if filter_mode == 'whitelist'
                filters = Value.dig('dns', 'fake-ip-filter') || []
-               deleted_filters = filters.select { |f| f =~ /(geosite:?|rule-set:?).*(?:@cn|:cn|,cn|(?<!non)(?<!no)-cn|@china|:china|,china)/i }
+               deleted_filters = filters.select { |f| f =~ /(geosite:?|rule-set:?).*(@cn|:cn|,cn|:china)/i }
                if deleted_filters.any?
                   Value['dns']['fake-ip-filter'] -= deleted_filters
                   deleted_filters.each do |f|

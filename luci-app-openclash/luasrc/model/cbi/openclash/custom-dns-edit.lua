@@ -1,5 +1,7 @@
 local m, s, o
 local openclash = "openclash"
+local uci = luci.model.uci.cursor()
+local dynamic_uci = luci.model.uci.cursor()
 local fs = require "luci.openclash"
 local SYS = require "luci.sys"
 local DISP = require "luci.dispatcher"
@@ -135,7 +137,7 @@ o:depends("group", "fallback")
 local groupnames,filename
 filename = m.uci:get(openclash, "config", "config_path")
 if filename then
-	groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].to_a.each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
+	groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
 	if groupnames then
 		for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
 			if groupname ~= nil and groupname ~= "" then
@@ -145,7 +147,7 @@ if filename then
 	end
 end
 
-m.uci:foreach("openclash", "proxy_groups",
+dynamic_uci:foreach("openclash", "proxy_groups",
 function(s)
 	if s.name ~= "" and s.name ~= nil then
 		o:value(s.name)

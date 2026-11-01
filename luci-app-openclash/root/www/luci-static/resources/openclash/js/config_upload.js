@@ -214,6 +214,18 @@ var SubscriptionUrlSetter = {
     }
 };
 
+function ocFormatSize(bytes) {
+    var value = parseFloat(bytes);
+    if (isNaN(value) || value < 0) return '—';
+    var units = ['B', 'KB', 'MB', 'GB'];
+    var i = 0;
+    while (value >= 1024 && i < units.length - 1) {
+        value = value / 1024;
+        i++;
+    }
+    return (i === 0 ? String(Math.round(value)) : value.toFixed(1)) + ' ' + units[i];
+}
+
 function ocStatBox(value, label, unit) {
     var box = document.createElement('div');
     box.className = 'oc-sub-stat';
@@ -2464,6 +2476,7 @@ var ConfigUploader = {
     currentMode: 'file',
     onSuccess: '',
     subconverterVersionChecker: null,
+    linkRe: null,
 
     init: function() {
         this.overlay = document.getElementById('config-upload-overlay');
@@ -2474,11 +2487,6 @@ var ConfigUploader = {
         }
 
         this.bindEvents();
-        this.progressBar = ocCreateProgressBar(
-            document.getElementById('upload-progress'),
-            document.getElementById('upload-progress-fill'),
-            document.getElementById('upload-progress-text')
-        );
     },
 
     bindEvents: function() {
@@ -2494,9 +2502,37 @@ var ConfigUploader = {
             self.switchMode('subscribe');
         });
 
-        ocBindUploadZone(uploadZone, fileInput, {
-            canPick: function() { return !self.isProcessing && self.currentMode === 'file'; },
-            onSelect: function(file) { self.handleFileSelect(file); }
+        uploadZone.addEventListener('click', function() {
+            if (!self.isProcessing && self.currentMode === 'file') {
+                fileInput.click();
+            }
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                self.handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (!self.isProcessing && self.currentMode === 'file') {
+                uploadZone.classList.add('dragover');
+            }
+        });
+
+        uploadZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+
+            if (!self.isProcessing && self.currentMode === 'file' && e.dataTransfer.files.length > 0) {
+                self.handleFileSelect(e.dataTransfer.files[0]);
+            }
         });
 
         var subscribeUrlInput = document.getElementById('subscribe-url-input');
@@ -2610,24 +2646,6 @@ var ConfigUploader = {
         keywordOptionsEnable.addEventListener('change', function() {
             keywordOptionsContainer.classList.toggle('oc-hidden', !this.checked);
         });
-
-        var autoUpdateEnable = document.getElementById('auto-update-enable');
-        var autoUpdateOptions = document.getElementById('auto-update-options');
-        var autoUpdateMode = document.getElementById('auto-update-mode');
-        var autoUpdateAppointment = document.getElementById('auto-update-appointment');
-        var autoUpdateLoop = document.getElementById('auto-update-loop');
-        if (autoUpdateEnable) {
-            autoUpdateEnable.addEventListener('change', function() {
-                autoUpdateOptions.classList.toggle('oc-hidden', !this.checked);
-            });
-        }
-        if (autoUpdateMode) {
-            autoUpdateMode.addEventListener('change', function() {
-                var loop = this.value === '1';
-                autoUpdateAppointment.classList.toggle('oc-hidden', loop);
-                autoUpdateLoop.classList.toggle('oc-hidden', !loop);
-            });
-        }
 
         convertAddressSelect.addEventListener('change', function() {
             convertAddressCustom.classList.toggle('oc-hidden', this.value !== 'custom');
@@ -3028,24 +3046,6 @@ var ConfigUploader = {
         if (advFileEnable) advFileEnable.checked = false;
         var advFileContainer = document.getElementById('advanced-options-container-file');
         if (advFileContainer) advFileContainer.classList.add('oc-hidden');
-
-        var autoUpdateEnable = document.getElementById('auto-update-enable');
-        if (autoUpdateEnable) autoUpdateEnable.checked = false;
-        var autoUpdateOptions = document.getElementById('auto-update-options');
-        if (autoUpdateOptions) autoUpdateOptions.classList.add('oc-hidden');
-        var autoUpdateMode = document.getElementById('auto-update-mode');
-        if (autoUpdateMode) autoUpdateMode.value = '0';
-        var autoUpdateWeek = document.getElementById('auto-update-week');
-        if (autoUpdateWeek) autoUpdateWeek.value = '1';
-        var autoUpdateHour = document.getElementById('auto-update-hour');
-        if (autoUpdateHour) autoUpdateHour.value = '0';
-        var autoUpdateInterval = document.getElementById('auto-update-interval');
-        if (autoUpdateInterval) autoUpdateInterval.value = '60';
-        var autoUpdateAppointment = document.getElementById('auto-update-appointment');
-        if (autoUpdateAppointment) autoUpdateAppointment.classList.remove('oc-hidden');
-        var autoUpdateLoop = document.getElementById('auto-update-loop');
-        if (autoUpdateLoop) autoUpdateLoop.classList.add('oc-hidden');
-
         if (this.subconverterVersionChecker) this.subconverterVersionChecker.hide();
     },
 
@@ -3084,8 +3084,9 @@ var ConfigUploader = {
             templateSelect.selectedIndex = 0;
         }
 
-        if (this.progressBar) this.progressBar.hide();
-        var resetStatus = document.getElementById('config-upload-status-text');        resetStatus.textContent = '<%:Ready to add config%>';
+        document.getElementById('upload-progress').classList.add('oc-hidden');
+        var resetStatus = document.getElementById('config-upload-status-text');
+        resetStatus.textContent = '<%:Ready to add config%>';
         resetStatus.classList.remove('is-error');
         document.getElementById('config-upload-submit').textContent = '<%:Add Config%>';
         this.setFilenameError('');
@@ -3234,35 +3235,6 @@ var ConfigUploader = {
             }
         }
 
-        var autoUpdateEnableEl = document.getElementById('auto-update-enable');
-        var autoUpdateOptionsEl = document.getElementById('auto-update-options');
-        var autoUpdateModeEl = document.getElementById('auto-update-mode');
-        var autoUpdateWeekEl = document.getElementById('auto-update-week');
-        var autoUpdateHourEl = document.getElementById('auto-update-hour');
-        var autoUpdateIntervalEl = document.getElementById('auto-update-interval');
-        var autoUpdateAppointmentEl = document.getElementById('auto-update-appointment');
-        var autoUpdateLoopEl = document.getElementById('auto-update-loop');
-        if (autoUpdateEnableEl) {
-            var autoUpdateEnabled = data.auto_update === '1';
-            autoUpdateEnableEl.checked = autoUpdateEnabled;
-            if (autoUpdateOptionsEl) autoUpdateOptionsEl.classList.toggle('oc-hidden', !autoUpdateEnabled);
-        }
-        if (autoUpdateModeEl) {
-            var loopMode = data.config_auto_update_mode === '1';
-            autoUpdateModeEl.value = loopMode ? '1' : '0';
-            if (autoUpdateAppointmentEl) autoUpdateAppointmentEl.classList.toggle('oc-hidden', loopMode);
-            if (autoUpdateLoopEl) autoUpdateLoopEl.classList.toggle('oc-hidden', !loopMode);
-        }
-        if (autoUpdateWeekEl && data.config_update_week_time) {
-            autoUpdateWeekEl.value = data.config_update_week_time;
-        }
-        if (autoUpdateHourEl && data.auto_update_time !== undefined && data.auto_update_time !== '') {
-            autoUpdateHourEl.value = data.auto_update_time;
-        }
-        if (autoUpdateIntervalEl) {
-            autoUpdateIntervalEl.value = data.config_update_interval || '60';
-        }
-
         this.updateSubconverterVersionStatus();
         this.updateFoldSummaries();
         this.updateUrlFeedback();
@@ -3319,7 +3291,9 @@ var ConfigUploader = {
         }
 
         this.selectedFile = null;
-        ocSetUploadZoneFile(uploadZone, null, { empty: '<%:Support YAML file%>' });
+        uploadZone.classList.remove('has-file');
+        uploadZone.querySelector('.upload-primary').textContent = '<%:Click to select file or drag and drop%>';
+        uploadZone.querySelector('.upload-secondary').textContent = '<%:Support YAML file%>';
 
         this.updateSubmitButton();
         this.updateFoldSummaries();
@@ -3334,7 +3308,7 @@ var ConfigUploader = {
         this.setFilenameError('');
 
         if (!file) {
-            ocSetUploadZoneFile(uploadZone, null, { empty: '<%:Support YAML file%>' });
+            uploadZone.classList.remove('has-file');
             this.updateSubmitButton();
             statusText.classList.remove('is-error');
             statusText.textContent = '<%:Ready to upload file%>';
@@ -3343,14 +3317,18 @@ var ConfigUploader = {
 
         if (!file.name.match(/\.(yaml|yml)$/i)) {
             this.selectedFile = null;
-            ocSetUploadZoneFile(uploadZone, null, { empty: '<%:Support YAML file%>' });
+            uploadZone.classList.remove('has-file');
+            uploadZone.querySelector('.upload-primary').textContent = '<%:Click to select file or drag and drop%>';
+            uploadZone.querySelector('.upload-secondary').textContent = '<%:Support YAML file%>';
             statusText.classList.add('is-error');
             statusText.textContent = '<%:Please select a YAML file%>';
             this.updateSubmitButton();
             return;
         }
 
-        ocSetUploadZoneFile(uploadZone, file);
+        uploadZone.classList.add('has-file');
+        uploadZone.querySelector('.upload-primary').textContent = '<%:File selected:%> ' + file.name;
+        uploadZone.querySelector('.upload-secondary').textContent = '<%:Size:%> ' + ocFormatSize(file.size);
 
         var defaultName = file.name.replace(/\.(yaml|yml)$/i, '');
         filenameInput.value = defaultName;
@@ -3489,22 +3467,6 @@ var ConfigUploader = {
             }
         }
 
-        var sumUpdate = document.getElementById('sum-update');
-        if (sumUpdate) {
-            if (!document.getElementById('auto-update-enable').checked) {
-                sumUpdate.textContent = '<%:Disabled%>';
-            } else if (document.getElementById('auto-update-mode').value === '1') {
-                var intervalMinutes = document.getElementById('auto-update-interval').value || '60';
-                sumUpdate.textContent = '<%:Loop Mode%>' + ' · ' + intervalMinutes + ' ' + '<%:Minutes%>';
-            } else {
-                var weekSelect = document.getElementById('auto-update-week');
-                var weekText = weekSelect.options[weekSelect.selectedIndex] ? weekSelect.options[weekSelect.selectedIndex].textContent : weekSelect.value;
-                var hourValue = document.getElementById('auto-update-hour').value || '0';
-                if (hourValue.length === 1) hourValue = '0' + hourValue;
-                sumUpdate.textContent = '<%:Appointment Mode%>' + ' · ' + weekText + ' ' + hourValue + ':00';
-            }
-        }
-
         var sumAdvanced = document.getElementById('sum-advanced');
         if (sumAdvanced) {
             var headerRows = document.querySelectorAll('#subscribe-headers-container .header-row');
@@ -3595,6 +3557,9 @@ var ConfigUploader = {
         var submitBtn = document.getElementById('config-upload-submit');
         var cancelBtn = document.getElementById('config-upload-cancel');
         var statusText = document.getElementById('config-upload-status-text');
+        var progressContainer = document.getElementById('upload-progress');
+        var progressFill = document.getElementById('upload-progress-fill');
+        var progressText = document.getElementById('upload-progress-text');
 
         submitBtn.disabled = true;
         cancelBtn.disabled = true;
@@ -3620,7 +3585,16 @@ var ConfigUploader = {
             return;
         }
 
-        self.progressBar.start('<%:Uploading...%>');
+        progressContainer.classList.remove('oc-hidden');
+
+        var progress = 0;
+        var progressInterval = setInterval(function() {
+            if (progress < 90) {
+                progress += Math.random() * 15;
+                progressFill.style.width = Math.min(progress, 90) + '%';
+                progressText.textContent = '<%:Uploading...%> ' + Math.floor(Math.min(progress, 90)) + '%';
+            }
+        }, 100);
 
         var formData = new FormData();
         formData.append('config_file', this.selectedFile, filename);
@@ -3630,13 +3604,16 @@ var ConfigUploader = {
             body: formData
         })
         .then(function(response) {
+            clearInterval(progressInterval);
+
             if (!response.ok) {
                 throw new Error('HTTP error! status: ' + response.status);
             }
             return response.json();
         })
         .then(function(data) {
-            self.progressBar.done('<%:Upload completed%>');
+            progressFill.style.width = '100%';
+            progressText.textContent = '<%:Upload completed%> 100%';
 
             if (data.status === 'success') {
                 self.finishUpload(filename);
@@ -3709,13 +3686,6 @@ var ConfigUploader = {
             if (document.getElementById('exclude-plan').checked) excludeDefaults.push(document.getElementById('exclude-plan').value);
             if (document.getElementById('exclude-website').checked) excludeDefaults.push(document.getElementById('exclude-website').value);
         }
-
-        var autoUpdateEl = document.getElementById('auto-update-enable');
-        var autoUpdateModeEl = document.getElementById('auto-update-mode');
-        var autoUpdateWeekEl = document.getElementById('auto-update-week');
-        var autoUpdateHourEl = document.getElementById('auto-update-hour');
-        var autoUpdateIntervalEl = document.getElementById('auto-update-interval');
-        var autoUpdate = !!(autoUpdateEl && autoUpdateEl.checked);
 
         if (userAgent === 'custom') {
             userAgent = subscribeUaCustom.value.trim();
@@ -3813,11 +3783,6 @@ var ConfigUploader = {
             ex_keyword: excludeKeywords,
             de_ex_keyword: excludeDefaults.join(' '),
             sub_headers: customHeaders,
-            auto_update: autoUpdate ? '1' : '0',
-            config_auto_update_mode: autoUpdateModeEl ? autoUpdateModeEl.value : '0',
-            config_update_week_time: autoUpdateWeekEl ? autoUpdateWeekEl.value : '0',
-            auto_update_time: autoUpdateHourEl ? autoUpdateHourEl.value : '0',
-            config_update_interval: autoUpdateIntervalEl ? autoUpdateIntervalEl.value : '60',
             template_label: templateLabel,
             age_secret: (ageSecret || agePublic) ? '1' : ''
         };
@@ -4049,16 +4014,21 @@ var ConfigUploader = {
 
     handleError: function(message) {
         var statusText = document.getElementById('config-upload-status-text');
+        var progressText = document.getElementById('upload-progress-text');
+        var progressFill = document.getElementById('upload-progress-fill');
         var submitBtn = document.getElementById('config-upload-submit');
         var cancelBtn = document.getElementById('config-upload-cancel');
+        var progressContainer = document.getElementById('upload-progress');
 
         statusText.textContent = message || '<%:Process failed%>';
         statusText.classList.add('is-error');
-        if (this.progressBar) this.progressBar.hide();
+        progressText.textContent = '<%:Process failed%>';
+        progressFill.style.width = '0%';
 
         this.isProcessing = false;
         submitBtn.disabled = false;
         cancelBtn.disabled = false;
+        progressContainer.classList.add('oc-hidden');
     }
 };
 

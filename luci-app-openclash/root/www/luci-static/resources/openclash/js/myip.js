@@ -72,32 +72,13 @@
         refresh_http = setInterval(HTTP.runcheck, ocRandomInterval(INTERVAL.HTTP_CHECK_MIN, INTERVAL.HTTP_CHECK_MAX));
     }
 
-    var unlock_timers = {};
-
-    function stopUnlockTimers() {
-        Object.keys(unlock_timers).forEach(function(key) {
-            clearTimeout(unlock_timers[key]);
-            delete unlock_timers[key];
-        });
-    }
-
-    // Periodic checks run on staggered per-service timers so they never fire as one batch.
-    function startUnlockTimers() {
-        stopUnlockTimers();
+    function startUnlockInterval() {
         if (!unlock_view || unlock_gear) return;
-        var keys = UNLOCK_SERVICES.map(function(s) { return s.key; }).filter(unlock_is_selected);
-        keys.forEach(function(key, i) {
-            var tick = function() {
-                delete unlock_timers[key];
-                if (!unlock_view || unlock_gear) return;
-                if (!Object.keys(unlock_find_keys).length && !unlock_xhrs[key]) {
-                    run_unlock_check([key], false, true);
-                }
-                unlock_timers[key] = setTimeout(tick, ocRandomInterval(INTERVAL.UNLOCK_CHECK_MIN, INTERVAL.UNLOCK_CHECK_MAX));
-            };
-            var first = Math.round((i + 1) * ocRandomInterval(INTERVAL.UNLOCK_CHECK_MIN, INTERVAL.UNLOCK_CHECK_MAX) / keys.length);
-            unlock_timers[key] = setTimeout(tick, first);
-        });
+        if (refresh_unlock) clearInterval(refresh_unlock);
+        refresh_unlock = setInterval(function() {
+            if (!unlock_view || unlock_gear || Object.keys(unlock_find_keys).length || Object.keys(unlock_xhrs).length) return;
+            run_unlock_check();
+        }, ocRandomInterval(INTERVAL.UNLOCK_CHECK_MIN, INTERVAL.UNLOCK_CHECK_MAX));
     }
 
     function startIpInterval() {
@@ -111,7 +92,7 @@
 
     function clearAllIntervals() {
         if (refresh_http) { clearInterval(refresh_http); refresh_http = null; }
-        stopUnlockTimers();
+        if (refresh_unlock) { clearInterval(refresh_unlock); refresh_unlock = null; }
         if (refresh_ip) { clearInterval(refresh_ip); refresh_ip = null; }
     }
 
@@ -122,6 +103,7 @@
     }
 
     var refresh_http;
+    var refresh_unlock;
     var refresh_ip;
     var ipCheckXHR = null;
     var httpCheckXHR = null;
@@ -354,7 +336,7 @@
         } else {
             dot.className = 'myip-status-dot testing';
             dot.title = '<%:Testing...%>';
-            lat.innerHTML = '<span class="loading-spinner"></span>';
+            lat.textContent = '--';
             lat.className = 'myip-latency';
         }
     }
@@ -427,7 +409,9 @@
             script.src = 'https://whois.pconline.com.cn/ipJson.jsp?z=' + random;
             window.IPCallBack = function(data) {
                 if (data && data.ip) {
-                    $$.getElementById('ip-pcol').innerHTML = localStorage.getItem('privacy_my_ip') == 'true' ? '***.***.***.***' : data.ip;
+                    if (localStorage.getItem('privacy_my_ip') != 'true') {
+                        $$.getElementById('ip-pcol').innerHTML = data.ip;
+                    }
                     var geo = [];
                     if (data.pro) geo.push(data.pro);
                     if (data.city) geo.push(data.city);
@@ -448,7 +432,9 @@
                 const geoMatch = resp.data.match(/来自于：(.+)/);
 
                 if (ipMatch && geoMatch) {
-                    $$.getElementById('ip-ipip').innerHTML = localStorage.getItem('privacy_my_ip') == 'true' ? '***.***.***.***' : ipMatch[1];
+                    if (localStorage.getItem('privacy_my_ip') != 'true') {
+                        $$.getElementById('ip-ipip').innerHTML = ipMatch[1];
+                    }
                     $$.getElementById('ip-ipip-geo').innerHTML = geoMatch[1].trim();
                     addTitleOnOverflow();
                 }
@@ -457,7 +443,9 @@
         getIpifyIP: () => {
             IP.get(`https://api.ipify.org/?format=json&z=${random}`, 'json')
             .then(resp => {
-                $$.getElementById('ip-ipify').innerHTML = localStorage.getItem('privacy_my_ip') == 'true' ? '***.***.***.***' : resp.data.ip;
+                if (localStorage.getItem('privacy_my_ip') != 'true') {
+                    $$.getElementById('ip-ipify').innerHTML = resp.data.ip;
+                };
                 return resp.data.ip;
             })
             .then(ip => {
@@ -469,7 +457,9 @@
             fetch(`https://api.ip.sb/geoip?z=${random}`)
                 .then(response => response.json())
                 .then(data => {
-                    $$.getElementById('ip-ipsb').innerHTML = localStorage.getItem('privacy_my_ip') == 'true' ? '***.***.***.***' : data.ip;
+                    if (localStorage.getItem('privacy_my_ip') != 'true') {
+                        $$.getElementById('ip-ipsb').innerHTML = data.ip;
+                    };
                     $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.isp}`;
                     addTitleOnOverflow();
                 })
@@ -734,9 +724,17 @@
         unlock_sync_ribbons();
     }
 
-    function unlock_set_gear_icon(on) {
-        var icon = document.getElementById('unlock-gear-icon');
-        if (icon) icon.classList.toggle('oc-gear-on', !!on);
+    function unlock_set_unlock_icon(gear) {
+        var lock = document.getElementById('unlock-icon-lock');
+        var cog = document.getElementById('unlock-icon-gear');
+        if (!lock || !cog) return;
+        if (gear) {
+            lock.classList.add('oc-hidden');
+            cog.classList.remove('oc-hidden');
+        } else {
+            lock.classList.remove('oc-hidden');
+            cog.classList.add('oc-hidden');
+        }
     }
 
     var unlock_gear_list = [];
@@ -781,8 +779,6 @@
 
     var unlock_drag_key = null;
     var unlock_drag_target = null;
-    var unlock_drag_y = null;
-    var unlock_scroll_timer = null;
     var unlock_touch_start = null;
     var unlock_touch_timer = null;
     var unlock_touch_row = null;
@@ -805,11 +801,6 @@
         });
         unlock_drag_key = null;
         unlock_drag_target = null;
-        unlock_drag_y = null;
-        if (unlock_scroll_timer) {
-            clearInterval(unlock_scroll_timer);
-            unlock_scroll_timer = null;
-        }
         if (unlock_touch_timer) {
             clearTimeout(unlock_touch_timer);
             unlock_touch_timer = null;
@@ -868,24 +859,10 @@
         if (!listEl) return;
         var rect = listEl.getBoundingClientRect();
         if (clientY - rect.top < 24 && listEl.scrollTop > 0) {
-            listEl.scrollTop -= 10;
+            listEl.scrollTop -= 6;
         } else if (rect.bottom - clientY < 24 && listEl.scrollTop + listEl.clientHeight < listEl.scrollHeight) {
-            listEl.scrollTop += 10;
+            listEl.scrollTop += 6;
         }
-    }
-
-    // Timer driven so the list keeps scrolling while the pointer rests near an edge.
-    function unlock_gear_scroll_tick() {
-        var listEl = document.getElementById('myip-unlock-gear-list');
-        if (!listEl || !unlock_drag_key || unlock_drag_y === null) return;
-        var before = listEl.scrollTop;
-        unlock_gear_autoscroll(unlock_drag_y);
-        if (listEl.scrollTop !== before) unlock_gear_indicator_at(unlock_drag_y);
-    }
-
-    function unlock_gear_scroll_start() {
-        if (unlock_scroll_timer) return;
-        unlock_scroll_timer = setInterval(unlock_gear_scroll_tick, 50);
     }
 
     function unlock_gear_touch_begin(row, touch) {
@@ -899,9 +876,7 @@
             unlock_touch_dragging = true;
             unlock_drag_key = key;
             unlock_drag_target = null;
-            unlock_drag_y = unlock_touch_start.y;
             row.classList.add('dragging');
-            unlock_gear_scroll_start();
             if (navigator.vibrate) navigator.vibrate(50);
         }, 500);
     }
@@ -932,11 +907,10 @@
                 unlock_drag_key = key;
                 unlock_drag_target = null;
                 row.classList.add('dragging');
-                unlock_gear_scroll_start();
             }
             me.preventDefault();
-            unlock_drag_y = me.clientY;
             unlock_gear_indicator_at(me.clientY);
+            unlock_gear_autoscroll(me.clientY);
         };
         var onUp = function() {
             document.removeEventListener('mousemove', onMove);
@@ -975,7 +949,7 @@
             }
             unlock_services = selected;
             unlock_save_services();
-            ocToast('<%:Saved%>', 'success');
+            ocToast('<%:Saved successfully%>', 'success');
             unlock_apply_view(true);
             run_unlock_check(null, true);
         };
@@ -996,22 +970,53 @@
             var row = document.createElement('div');
             row.className = 'myip-gear-row';
             row.setAttribute('data-key', svc.key);
+            row.draggable = !touchPrimary;
             row.innerHTML = '<label class="myip-gear-left"><input type="checkbox" data-key="' + svc.key + '">' +
                 '<span class="myip-gear-state"></span>' +
                 '<svg class="myip-card-icon ' + svc.iconClass + '"><use href="#' + svc.icon + '"/></svg>' +
                 '<span class="myip-gear-name">' + svc.name + '</span></label>' +
                 '<span class="myip-gear-grip"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></span>';
-            row.addEventListener('mousedown', function(e) {
-                if (e.button !== 0) return;
-                if (touchPrimary && !(e.target.closest && e.target.closest('.myip-gear-grip'))) return;
-                unlock_gear_mouse_begin(row, e);
-            });
+            if (touchPrimary) {
+                row.querySelector('.myip-gear-grip').addEventListener('mousedown', function(e) {
+                    if (e.button !== 0) return;
+                    e.preventDefault();
+                    unlock_gear_mouse_begin(row, e);
+                });
+            }
             unlock_gear_rows[svc.key] = row;
             listEl.appendChild(row);
         });
         panel.addEventListener('change', function(e) {
             if (!e.target || e.target.type !== 'checkbox') return;
             unlock_sync_gear(panel);
+        });
+        panel.addEventListener('dragstart', function(e) {
+            var row = e.target && e.target.closest ? e.target.closest('.myip-gear-row') : null;
+            if (!row) return;
+            unlock_drag_key = row.getAttribute('data-key');
+            unlock_drag_target = null;
+            row.classList.add('dragging');
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                try { e.dataTransfer.setData('text/plain', unlock_drag_key); } catch (err) {}
+            }
+        });
+        panel.addEventListener('dragover', function(e) {
+            if (!unlock_drag_key) return;
+            e.preventDefault();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+            var row = e.target && e.target.closest ? e.target.closest('.myip-gear-row') : null;
+            if (!row) return;
+            var rect = row.getBoundingClientRect();
+            unlock_gear_set_indicator(row.getAttribute('data-key'), e.clientY > rect.top + rect.height / 2);
+        });
+        panel.addEventListener('drop', function(e) {
+            if (!unlock_drag_key) return;
+            e.preventDefault();
+            unlock_gear_drop();
+        });
+        panel.addEventListener('dragend', function() {
+            unlock_gear_drag_clear();
         });
         panel.addEventListener('touchstart', function(e) {
             if (e.touches.length !== 1) return;
@@ -1024,8 +1029,8 @@
             var touch = e.touches[0];
             if (unlock_touch_dragging) {
                 e.preventDefault();
-                unlock_drag_y = touch.clientY;
                 unlock_gear_indicator_at(touch.clientY);
+                unlock_gear_autoscroll(touch.clientY);
                 return;
             }
             if (!unlock_touch_start || unlock_touch_moved) return;
@@ -1070,11 +1075,10 @@
         d.ribbon.title = title;
     }
 
-    // In-flight checks show the ellipsis marker unless quiet (periodic), which keeps
-    // the last marker; the busy flag lives in an attribute as className is rewritten.
+    // A check in flight shows the ellipsis marker; the busy flag lives in an attribute
+    // because unlock_set_ribbon rewrites className.
     function unlock_render_ribbon(d, key) {
-        var quiet = unlock_pending[key] === 'quiet';
-        if (unlock_pending[key] && !quiet) {
+        if (unlock_pending[key]) {
             d.ribbon.setAttribute('data-busy', '');
             unlock_set_ribbon(d, 'rib-t', 'dots', '<%:Testing...%>');
             return;
@@ -1082,7 +1086,7 @@
         d.ribbon.removeAttribute('data-busy');
         var r = unlock_results[key];
         if (!r) {
-            unlock_set_ribbon(d, 'rib-n', 'dash', quiet ? '<%:Testing...%>' : '<%:Not Tested%>');
+            unlock_set_ribbon(d, 'rib-n', 'dash', '<%:Not Tested%>');
             return;
         }
         var st = Number(r.st) || 0;
@@ -1101,7 +1105,7 @@
             icon = 'cross';
         }
         var regionName = (st !== 0 && r.region) ? String(r.region).toUpperCase() : '';
-        unlock_set_ribbon(d, state, icon, quiet ? '<%:Testing...%>' : text + (regionName ? ' · ' + regionName : ''));
+        unlock_set_ribbon(d, state, icon, text + (regionName ? ' · ' + regionName : ''));
     }
 
     function unlock_sync_ribbons() {
@@ -1123,10 +1127,7 @@
         var range = document.createRange();
         range.selectNodeContents(d.node);
         var rects = range.getClientRects();
-        if (!rects.length) {
-            d.region.style.left = '';
-            return;
-        }
+        if (!rects.length) return;
         var top = rects[0].top;
         var right = rects[0].right;
         for (var i = 1; i < rects.length; i++) {
@@ -1134,8 +1135,8 @@
             if (rects[i].right > right) right = rects[i].right;
         }
         var parentLeft = d.region.parentNode.getBoundingClientRect().left;
-        var left = Math.round(right - parentLeft + 5);
-        var card = d.region.closest('.myip-check-item');
+        var left = Math.round(right - parentLeft + 2);
+        var card = d.region.closest('.myip-main-card');
         if (card) {
             var maxLeft = Math.floor(card.getBoundingClientRect().right - d.region.offsetWidth - 4 - parentLeft);
             if (left > maxLeft) left = maxLeft;
@@ -1214,7 +1215,7 @@
         syncCardHeights();
     }
 
-    function unlock_set_pending(key, spinner, quiet) {
+    function unlock_set_pending(key, spinner) {
         var i = unlock_slot_index(key);
         if (i < 0) return;
         var d = unlock_init_dom()[ACCESS_SLOTS[i]];
@@ -1223,7 +1224,7 @@
             d.node.className = 'myip-unlock-node-name';
             unlock_set_region(d, '');
         }
-        unlock_pending[key] = quiet ? 'quiet' : true;
+        unlock_pending[key] = true;
         unlock_render_ribbon(d, key);
     }
 
@@ -1249,11 +1250,11 @@
     }
 
     // Services that failed are retried once, one parallel request each.
-    function unlock_retry_failed(keys, manual, list, quiet) {
+    function unlock_retry_failed(keys, manual, list) {
         var left = keys.length;
         keys.forEach(function(key) {
             if (unlock_xhrs[key]) { left--; return; }
-            unlock_set_pending(key, manual || !unlock_results[key], quiet);
+            unlock_set_pending(key, manual || !unlock_results[key]);
             var xhr = new XMLHttpRequest();
             xhr.open('GET', '/cgi-bin/luci/admin/services/openclash/unlock_check?service=' + encodeURIComponent(key), true);
             xhr.timeout = 90000;
@@ -1294,7 +1295,7 @@
         unlock_sync_ribbons();
     }
 
-    function run_unlock_check(services, manual, quiet) {
+    function run_unlock_check(services, manual) {
         if (!unlock_view) return;
         var list = (services && services.length) ? services.slice() : UNLOCK_SERVICES.map(function(s) { return s.key; }).filter(unlock_is_selected);
         if (services && services.length) {
@@ -1306,7 +1307,7 @@
         }
         if (!list.length) return;
         list.forEach(function(key) {
-            unlock_set_pending(key, manual || !unlock_results[key], quiet);
+            unlock_set_pending(key, manual || !unlock_results[key]);
         });
 
         var xhr = new XMLHttpRequest();
@@ -1356,7 +1357,7 @@
             syncCardHeights();
             var failed = list.filter(unlock_is_failed);
             if (failed.length) {
-                unlock_retry_failed(failed, manual, list, quiet);
+                unlock_retry_failed(failed, manual, list);
                 return;
             }
             unlock_notify_failure(list, manual);
@@ -1435,7 +1436,7 @@
                 } else {
                     if (unlock_view) {
                         unlock_render(key);
-                        ocToast('<%:Test failed%>', 'error');
+                        ocToast('<%:Something Wrong While Testing...%>', 'error');
                     }
                 }
                 delete unlock_find_keys[key];
@@ -1445,24 +1446,9 @@
         });
     }
 
-    // Gear panel height tracks the card grid so switching views does not resize the page.
-    function unlock_sync_gear_height() {
-        var panel = unlock_gear_dom();
-        var dom = unlock_init_dom();
-        var cards = ACCESS_SLOTS.map(function(slot) { return dom[slot].card; });
-        var cardsHidden = cards[0].style.display === 'none';
-        var panelHidden = panel.classList.contains('oc-hidden');
-        if (!panelHidden) panel.classList.add('oc-hidden');
-        if (cardsHidden) cards.forEach(function(card) { card.style.display = ''; });
-        var h = Math.round(document.querySelector('.myip-check-list').getBoundingClientRect().height);
-        if (cardsHidden) cards.forEach(function(card) { card.style.display = 'none'; });
-        if (!panelHidden) panel.classList.remove('oc-hidden');
-        panel.style.height = h + 'px';
-    }
-
     function unlock_enter_gear() {
         unlock_gear = true;
-        stopUnlockTimers();
+        if (refresh_unlock) { clearInterval(refresh_unlock); refresh_unlock = null; }
         var panel = unlock_gear_dom();
         var listEl = panel.querySelector('.myip-gear-list');
         var selected = unlock_slots();
@@ -1474,15 +1460,20 @@
             listEl.appendChild(unlock_gear_rows[key]);
         });
         unlock_sync_gear(panel);
-        unlock_sync_gear_height();
         var dom = unlock_init_dom();
         ACCESS_SLOTS.forEach(function(slot) {
             dom[slot].card.style.display = 'none';
         });
         panel.classList.remove('oc-hidden');
-        unlock_set_gear_icon(true);
+        unlock_set_unlock_icon(true);
         var title = document.getElementById('myip-check-title');
         if (title) title.textContent = '<%:Unlock Services%>';
+        var icon = document.getElementById('unlock-icon');
+        if (icon) {
+            icon.classList.add('oc-unlock-on');
+            var t = icon.querySelector('title');
+            if (t) t.textContent = '<%:Unlock Services%>';
+        }
         syncCardHeights();
     }
 
@@ -1490,18 +1481,10 @@
         if (!unlock_view) {
             unlock_apply_view(true);
             run_unlock_check();
+        } else if (!unlock_gear) {
+            unlock_enter_gear();
         } else {
             unlock_apply_view(false);
-        }
-        return false;
-    }
-
-    function toggle_unlock_gear_by_icon(svgElement) {
-        if (unlock_gear) {
-            unlock_apply_view(true);
-        } else {
-            if (!unlock_view) unlock_apply_view(true);
-            unlock_enter_gear();
         }
         return false;
     }
@@ -1519,9 +1502,8 @@
 
         if (unlock_view) {
             if (mainCard) mainCard.classList.add('oc-unlock-view');
-            unlock_set_gear_icon(false);
+            unlock_set_unlock_icon(false);
             unlock_gear_dom().classList.add('oc-hidden');
-            unlock_gear_dom().style.height = '';
             if (title) title.textContent = '<%:Unlock Check%>';
             if (icon) {
                 icon.classList.add('oc-unlock-on');
@@ -1534,13 +1516,12 @@
             unlock_render_all();
             unlock_set_find_buttons();
             unlock_load_services();
-            startUnlockTimers();
+            startUnlockInterval();
         } else {
-            stopUnlockTimers();
+            if (refresh_unlock) { clearInterval(refresh_unlock); refresh_unlock = null; }
             if (mainCard) mainCard.classList.remove('oc-unlock-view');
-            unlock_set_gear_icon(false);
+            unlock_set_unlock_icon(false);
             unlock_gear_dom().classList.add('oc-hidden');
-            unlock_gear_dom().style.height = '';
             if (title) title.textContent = '<%:Access Check%>';
             if (icon) {
                 icon.classList.remove('oc-unlock-on');
@@ -1843,15 +1824,23 @@
 
     function refresh_myip(svgElement) {
         clearAllIntervals();
-        reset_display();
 
         if (use_router_mode) {
             get_router_ip_info();
         } else {
+            if (localStorage.getItem('privacy_my_ip') === 'true') {
+                $$.getElementById('ip-ipip-geo').innerHTML = '';
+                $$.getElementById('ip-ipsb-geo').innerHTML = '';
+                $$.getElementById('ip-pcol-geo').innerHTML = '';
+                $$.getElementById('ip-ipify-geo').innerHTML = '';
+                $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
+                $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
+                $$.getElementById('ip-pcol').innerHTML = '***.***.***.***';
+                $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
+            }
             myip_Load();
         }
         if (!unlock_view) {
-            ACCESS_SLOTS.forEach(function(svc) { updateCheckCard(svc, 'testing'); });
             HTTP.runcheck();
         } else if (!unlock_gear) {
             run_unlock_check(null, true);
@@ -1859,7 +1848,7 @@
 
         startHttpInterval();
         startIpInterval();
-        startUnlockTimers();
+        startUnlockInterval();
 
         return false;
     }
@@ -1902,7 +1891,6 @@
     window.addEventListener('resize', function() {
         syncCardHeights();
         unlock_schedule_align();
-        if (unlock_gear) unlock_sync_gear_height();
     });
 
     window.addEventListener('beforeunload', function() {
@@ -1923,7 +1911,7 @@
             startHttpInterval();
             HTTP.runcheck();
         } else {
-            startUnlockTimers();
+            startUnlockInterval();
         }
         startIpInterval();
         if (localStorage.getItem('privacy_my_ip') !== 'true') {
