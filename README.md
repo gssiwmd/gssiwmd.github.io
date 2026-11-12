@@ -1,6 +1,6 @@
 # URL地址
 
-iptv插件移动到 openwrt-gssiwmd
+iptv插件移动到 gssiwmd-packages
 
-2026.11.12
+2026.11.13
 
